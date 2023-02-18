@@ -2,17 +2,12 @@
 #define _THREAD_POOL_H
 
 #include <condition_variable>
+#include <functional>
 #include <memory>
 #include <mutex>
 #include <queue>
 #include <cassert>
-#include <memory>
-
-struct ThreadPoolLocker {
-    std::mutex mtx;
-    std::condition_variable cond;
-};
-
+#include <thread>
 
 class ThreadPool {
 public:
@@ -20,13 +15,26 @@ public:
     ~ThreadPool();
 
 public:
-    template<class T>
-    void addTask(T&& task);
+    template<typename T>
+    void addTask(T&& task) {
+        {
+            std::lock_guard<std::mutex> guard(m_locker->mtx);
+            m_tasks_queue.emplace(std::forward<T>(task));
+        }
+
+        m_locker->cond.notify_one();
+    }
 
 private:
+    struct ThreadPoolLocker {
+        std::mutex mtx;
+        std::condition_variable cond;
+    };
+
     int m_thread_nums;
     std::shared_ptr<ThreadPoolLocker> m_locker;
-    std::queue<void (*)(void)> m_tasks_queue;  // 执行任务队列
+    // std::queue<void (*)()> m_tasks_queue;  // 执行任务队列
+    std::queue<std::function<void()>> m_tasks_queue;  // 执行任务队列
     bool m_closed;
 };
 

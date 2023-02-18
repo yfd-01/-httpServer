@@ -1,6 +1,4 @@
 #include "threadPool.h"
-#include <memory>
-#include <mutex>
 
 ThreadPool::ThreadPool(int thread_nums): m_thread_nums(thread_nums) {
     assert(m_thread_nums > 0);
@@ -33,14 +31,4 @@ ThreadPool::ThreadPool(int thread_nums): m_thread_nums(thread_nums) {
 ThreadPool::~ThreadPool() {
     m_closed = true;
     m_locker->cond.notify_all();    // 通知所有工作线程结束
-}
-
-template<typename T>
-void ThreadPool::addTask(T&& task) {
-    {
-        std::lock_guard<std::mutex> guard(m_locker->mtx);
-        m_tasks_queue.emplace(std::forward<T>(task));
-    }
-
-    m_locker->cond.notify_one();
 }
