@@ -26,20 +26,14 @@ int main() {
 
 #if THREADPOOL_TEST
     {
-        void (*print_func_ptr)(void) = [] {
-            std::cout<< "info"<< std::endl;
+        auto print_func_ptr = [](const char* info) {
+            std::cout<< "info: "<< info<< std::endl;
         };
 
         ThreadPool tp(6);
 
         for (int i = 0; i < 20; i++) {
-            tp.addTask(print_func_ptr);
-
-            if (i == 10) {
-                sleep(2);
-            }else if(i == 15) {
-                sleep(1);
-            }
+            tp.addTask(std::bind(print_func_ptr, "yfd"));
         }
         sleep(1);
     }

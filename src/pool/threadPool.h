@@ -33,7 +33,6 @@ private:
 
     int m_thread_nums;
     std::shared_ptr<ThreadPoolLocker> m_locker;
-    // std::queue<void (*)()> m_tasks_queue;  // 执行任务队列
     std::queue<std::function<void()>> m_tasks_queue;  // 执行任务队列
     bool m_closed;
 };

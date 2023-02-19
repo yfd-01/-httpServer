@@ -6,17 +6,16 @@ ThreadPool::ThreadPool(int thread_nums): m_thread_nums(thread_nums) {
     m_locker = std::make_shared<ThreadPoolLocker>();
     for (int i = 0; i < m_thread_nums; i++) {
         std::thread([this]{
-            std::unique_lock<std::mutex> mtx(m_locker->mtx, std::defer_lock);
+            std::unique_lock<std::mutex> mtx(m_locker->mtx);
 
             while (1) {
                 if (!m_tasks_queue.empty()) {
-                    mtx.lock();
-                    
-                    auto task = std::move(m_tasks_queue.front());
-                    m_tasks_queue.pop();
-                    task();
-
                     mtx.unlock();
+                    auto task = std::move(m_tasks_queue.front());
+                    m_tasks_queue.pop();                    
+                    mtx.lock();
+
+                    task();
                 }else if(m_closed) { break; }
                 else {
                     m_locker->cond.wait(mtx);
