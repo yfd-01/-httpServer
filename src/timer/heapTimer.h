@@ -17,10 +17,6 @@ struct TimerNode {
     bool operator< (const TimePoint& t) {
         return expire < t.expire;
     }
-
-    bool operator<= (const TimePoint& t) {
-        return expire <= t.expire;
-    }
 };
 
 class HeapTimer {
@@ -29,14 +25,13 @@ public:
     ~HeapTimer();
 
 public:
-    void add();
+    void add(int tid, int timeout, const TimeoutCallBack& cb);
     int parentIndex(int i);
     int childIndexLeft(int i);
-    int childIndexRight(int i);
 
 private:
     void __siftUp(int i);
-    void __siftDown(int i);
+    bool __siftDown(int i, int n);
     void __del(int i);
     void __swap(int i, int j);
 
