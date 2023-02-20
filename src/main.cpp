@@ -1,6 +1,7 @@
 #include "pool/sqlConnPool.h"
 #include "pool/threadPool.h"
 #include "timer/heapTimer.h"
+#include "logger/blockingdeque.h"
 #include <iostream>
 #include <functional>
 #include <unistd.h>
@@ -9,6 +10,7 @@
 #define SQLCONNPOOL_TEST 0
 #define THREADPOOL_TEST 0
 #define HEAPTIMER_TEST 0
+#define BLOCKINGDEQUE_TEST 1
 
 void func() {
     std::cout<< "hello: "<< std::endl;
@@ -55,6 +57,44 @@ int main() {
         std::cout<< timer.getNextTick()<< std::endl;
         sleep(1);
         timer.fresh();
+    }
+#endif
+
+#if BLOCKINGDEQUE_TEST
+    {
+        BlockingDeque<std::string> deq(3);
+        
+        int thread_nums = 5;
+        std::vector<std::thread> threads;
+
+        for (int i = 0; i < thread_nums; i++) {
+            std::thread t([&deq] {
+                deq.pushFront("yfd1");
+                deq.pushFront("yfd2");
+            });
+
+            threads.push_back(std::move(t));
+        }
+        std::string str;
+
+        std::cout<< deq.size()<< std::endl;
+        sleep(1);
+        std::cout<< "pop1: "<< deq.pop(str)<< std::endl;
+        deq.clear();
+        std::cout<< "pop2: "<<deq.pop(str, 1000)<< std::endl;;
+        sleep(2);
+        std::cout<< deq.size()<< std::endl;
+        std::cout<< "pop3: "<<deq.pop(str)<< std::endl;;
+        std::cout<< deq.size()<< std::endl;
+
+        sleep(1);
+        // deq.feed();
+        // deq.feed();
+        // deq.feed();
+        std::cout<< deq.size()<< std::endl;
+
+        for (auto& t: threads)
+            t.join();
     }
 #endif
 

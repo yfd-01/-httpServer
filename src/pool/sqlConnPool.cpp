@@ -47,7 +47,7 @@ MYSQL* SqlConnPool::getConn() {
     sem_wait(&m_sem);
 
     {
-        std::lock_guard<std::mutex> lock(m_mutex);
+        std::lock_guard<std::mutex> locker(m_mutex);
         conn = m_conn_pool.front();
         m_conn_pool.pop();
 
