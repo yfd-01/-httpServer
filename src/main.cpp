@@ -1,12 +1,18 @@
 #include "pool/sqlConnPool.h"
 #include "pool/threadPool.h"
+#include "timer/heapTimer.h"
 #include <iostream>
 #include <functional>
 #include <unistd.h>
 #include <string>
 
 #define SQLCONNPOOL_TEST 0
-#define THREADPOOL_TEST 1
+#define THREADPOOL_TEST 0
+#define HEAPTIMER_TEST 0
+
+void func() {
+    std::cout<< "hello: "<< std::endl;
+}
 
 int main() {
 #if SQLCONNPOOL_TEST
@@ -36,6 +42,19 @@ int main() {
             tp.addTask(std::bind(print_func_ptr, "yfd"));
         }
         sleep(1);
+    }
+#endif
+
+#if HEAPTIMER_TEST
+    {
+        HeapTimer timer;
+        timer.add(10, 2000, func);
+        timer.add(12, 8000, func);
+        timer.add(15, 1500, func);
+        sleep(1);
+        std::cout<< timer.getNextTick()<< std::endl;
+        sleep(1);
+        timer.fresh();
     }
 #endif
 

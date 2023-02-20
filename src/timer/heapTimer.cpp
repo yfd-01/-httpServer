@@ -1,4 +1,6 @@
 #include "heapTimer.h"
+#include <cassert>
+#include <chrono>
 
 HeapTimer::HeapTimer() {
     m_heap.reserve(c_init_reserves);
@@ -18,7 +20,57 @@ int HeapTimer::childIndexLeft(int i) {
 }
 
 void HeapTimer::add(int tid, int timeout, const TimeoutCallBack& cb) {
+    assert(tid > 0);
+    int i;
+    
+    if (m_map.count(tid) != 0) {
+        // exists
+        i = m_map[tid];
+        m_heap[i].expire = Clock::now() + MS(timeout);
+        m_heap[i].cb = cb;
 
+        __siftUp(i);
+    }else {
+        // no exists
+        i = m_heap.size();
+        m_map[tid] = i;
+        m_heap.push_back({tid, Clock::now() + MS(timeout), cb });
+
+        if (!__siftDown(i, m_heap.size() - 1)) __siftUp(i);
+    }
+}
+
+void HeapTimer::drop(int tid) {
+    assert(!m_heap.empty() && m_map.count(tid) != 0);
+
+    const int i = m_map[tid];
+    m_heap[i].cb();
+    __del(i);
+}
+
+void HeapTimer::fresh() {
+    while (!m_heap.empty()) {
+        TimerNode timer = m_heap.front();
+
+        if (std::chrono::duration_cast<MS>(timer.expire - Clock::now()).count() > 0)
+            break;
+
+        timer.cb();
+        __del(0);
+    }
+}
+
+int HeapTimer::getNextTick() {
+    fresh();
+    int interval = -1;
+
+    if (!m_heap.empty()) {
+        interval = std::chrono::duration_cast<MS>(m_heap.front().expire - Clock::now()).count();
+        
+        if (interval < 0) interval = 0;
+    }
+
+    return interval;
 }
 
 void HeapTimer::__del(int i) {

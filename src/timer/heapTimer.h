@@ -5,8 +5,11 @@
 #include <functional>
 #include <vector>
 #include <unordered_map>
+#include <cassert>
 
-typedef std::chrono::high_resolution_clock::time_point TimePoint;
+typedef std::chrono::milliseconds MS;
+typedef std::chrono::high_resolution_clock Clock;
+typedef Clock::time_point TimePoint;
 typedef std::function<void()> TimeoutCallBack;
 
 struct TimerNode {
@@ -14,7 +17,7 @@ struct TimerNode {
     TimePoint expire;
     TimeoutCallBack cb;
 
-    bool operator< (const TimePoint& t) {
+    bool operator< (const TimerNode& t) {
         return expire < t.expire;
     }
 };
@@ -26,6 +29,11 @@ public:
 
 public:
     void add(int tid, int timeout, const TimeoutCallBack& cb);
+    void drop(int tid);
+    void adjust(int tid, int timeout);
+    void fresh();
+    int getNextTick();
+
     int parentIndex(int i);
     int childIndexLeft(int i);
 
@@ -35,7 +43,7 @@ private:
     void __del(int i);
     void __swap(int i, int j);
 
-    std::vector<TimePoint> m_heap;
+    std::vector<TimerNode> m_heap;
     std::unordered_map<int, int> m_map;
     const int c_init_reserves = sizeof(size_t) * 8;
 };
