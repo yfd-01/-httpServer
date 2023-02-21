@@ -1,16 +1,18 @@
+#include "logger/devices.h"
 #include "pool/sqlConnPool.h"
 #include "pool/threadPool.h"
 #include "timer/heapTimer.h"
-#include "logger/blockingDeque.h"
+#include "logger/logger.h"
 #include <iostream>
 #include <functional>
 #include <unistd.h>
 #include <string>
 
-#define SQLCONNPOOL_TEST 0
-#define THREADPOOL_TEST 0
-#define HEAPTIMER_TEST 0
-#define BLOCKINGDEQUE_TEST 1
+#define SQLCONNPOOL_TEST    0
+#define THREADPOOL_TEST     0
+#define HEAPTIMER_TEST      0
+#define BLOCKINGDEQUE_TEST  0
+#define LOGGER_TEST         1
 
 void func() {
     std::cout<< "hello: "<< std::endl;
@@ -95,6 +97,19 @@ int main() {
 
         for (auto& t: threads)
             t.join();
+    }
+#endif
+
+#if LOGGER_TEST
+    {
+        // Logger::Instance()->write(LoggerLevel::_INFO, "hello\n");
+        // std::cout<< Logger::Instance()<< std::endl;
+        // std::cout<< Logger::Instance()<< std::endl;
+        // std::cout<< Logger::Instance()<< std::endl;
+
+        Logger::Instance()->init(MsgLevel::_INFO, LoggerDevice::_TERMINAL, "./log", ".log", 1024);
+
+        Logger::Instance()->write(MsgLevel::_INFO, "hello from logger!\n");
     }
 #endif
 
