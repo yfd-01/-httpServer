@@ -25,9 +25,15 @@ public:
 public:
     virtual void write(const char* msg) = 0;
     virtual void write(const std::string& msg) = 0;
+    virtual void changeOFS(std::ofstream& new_ofs) {}
+public:
+    LoggerDevice type_;
 };
 
 class Terminal: public Device {
+public:
+    Terminal();
+
 public:
     void write(const char* msg);
     void write(const std::string& msg);
@@ -42,6 +48,8 @@ public:
     void write(const char* msg);
     void write(const std::string& msg);
 
+    void changeOFS(std::ofstream& new_ofs);
+    static int s_pre_file_rows_left;
 private:
     std::ofstream m_ofs;
 };

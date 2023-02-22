@@ -11,6 +11,23 @@
 #include <cassert>
 #include <ctime>
 
+#define LOG_FILE_NAME_MAX_LEN 256
+#define NOW_TIME_STR_MAX_LEN 64
+
+struct LogFileDate {
+    int year;
+    int month;
+    int day;
+
+    bool operator== (const LogFileDate& d) {
+        return year == d.year && month == d.month && day == d.day;
+    }
+
+    bool operator!= (const LogFileDate& d) {
+        return !(*this == d);
+    }
+};
+
 class Logger {
 private:
     Logger();
@@ -26,10 +43,12 @@ public:
 
 private:
     bool m_initilized;
+    LoggerDevice m_device;
     MsgLevel m_level;
     const char* m_path;
     const char* m_suffix;
-    char m_nowTime[64];
+    LogFileDate m_new_date, m_old_date;
+    char m_nowTime[NOW_TIME_STR_MAX_LEN];
 
     static Logger* s_logger;
     static std::mutex m_mtx;
@@ -45,6 +64,7 @@ private:
     static void raiseWriteThread();
 
     void formatMsg(MsgLevel level, std::string& msg);
+    void openLogFile(std::ofstream& ofs, const char* fileName);
 };
 
 #endif // _LOGGER_H

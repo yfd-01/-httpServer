@@ -1,5 +1,7 @@
 #include "logger.h"
 #include "devices.h"
+#include <fstream>
+#include <string>
 
 Logger::Logger() {
     m_initilized = false;
@@ -40,7 +42,7 @@ void Logger::Destroy() {
 
 void Logger::init(
     MsgLevel default_level = MsgLevel::_INFO,
-    LoggerDevice device = LoggerDevice::_BOTH,
+    LoggerDevice default_device = LoggerDevice::_BOTH,
     const char* path = "./log",
     const char* suffix = ".log",
     int dequeCapacity = 1024
@@ -48,32 +50,27 @@ void Logger::init(
     assert(dequeCapacity > 0 && !m_initilized);
 
     m_level = default_level;
+    m_device = default_device; 
     m_path = path;
     m_suffix = suffix;
 
     if (!m_blockingDeq)         // blocking deque ready
         m_blockingDeq = std::make_unique<BlockingDeque<std::string>>(dequeCapacity);
         
-    char fileName[256];
+    char fileName[LOG_FILE_NAME_MAX_LEN];
     fetchFileName(fileName);    // get log file name
 
     std::ofstream ofs;
-    ofs.open(fileName, std::ios::app);
-    if (!ofs.good()) {
-        mkdir(m_path, 0777);
-        ofs.open(fileName, std::ios::app);
-    }
-
-    assert(ofs.good());         // make log file exists
+    openLogFile(ofs, fileName);
 
     std::unique_ptr<Device> device_T = std::make_unique<Terminal>();
     std::unique_ptr<Device> device_F = std::make_unique<File>(ofs);
 
-    if (device == LoggerDevice::_TERMINAL)
+    if (m_device == LoggerDevice::_TERMINAL)
         m_devices.push_back(std::move(device_T));
-    else if (device == LoggerDevice::_FILE)
+    else if (m_device == LoggerDevice::_FILE)
         m_devices.push_back(std::move(device_F));
-    else if (device == LoggerDevice::_BOTH) {
+    else if (m_device == LoggerDevice::_BOTH) {
         m_devices.push_back(std::move(device_T));
         m_devices.push_back(std::move(device_F));
     }   // output devices ready
@@ -94,7 +91,7 @@ void Logger::write(MsgLevel level, const char* msg) {
 
     // reformat msg to standard msg
     std::string s_(msg);
-    formatMsg(level, s_);
+    
     m_blockingDeq->pushFront(s_);
 }
 
@@ -104,7 +101,6 @@ void Logger::write(MsgLevel level, std::string& msg) {
     if (level > m_level || level == _NONE)
         return;
 
-    formatMsg(level, msg);
     m_blockingDeq->pushFront(msg);
 }
 
@@ -150,8 +146,23 @@ void Logger::fetchNowTime() {
     time(&now_time);
     t = localtime(&now_time);
 
+    int _year = t->tm_year + 1900;
+    int _month = t->tm_mon + 1;
+    int _day = t->tm_mday;
     snprintf(m_nowTime, 56, "%04d-%02d-%02d %02d:%02d:%02d %s",
-    t->tm_year + 1900, t->tm_mon + 1, t->tm_mday, t->tm_hour, t->tm_min, t->tm_sec, t->tm_zone);
+    _year, _month, _day, t->tm_hour, t->tm_min, t->tm_sec, t->tm_zone);
+
+    m_new_date = {_year, _month, _day};
+}
+
+void Logger::openLogFile(std::ofstream& ofs, const char* fileName) {
+    ofs.open(fileName, std::ios::app);
+    if (!ofs.good()) {
+        mkdir(m_path, 0777);
+        ofs.open(fileName, std::ios::app);
+    }
+
+    assert(ofs.good());         // make log file exists
 }
 
 void Logger::writeThreadJobs() {
@@ -162,6 +173,27 @@ void Logger::writeThreadJobs() {
 
         for (auto& device : m_devices)
             device->write(msg);
+
+        // check if it is a new day
+        // if ((m_device == _FILE || m_device == _BOTH) && m_new_date != m_old_date) {
+        //     if (m_blockingDeq->size())
+        //         continue;
+
+        //     std::ofstream ofs;
+        //     char fileName[LOG_FILE_NAME_MAX_LEN];
+
+        //     fetchFileName(fileName);
+        //     openLogFile(ofs, fileName);
+
+        //     for (auto& device : m_devices) {
+        //         if (device->type_ == _FILE) {
+        //             // File::s_pre_file_rows_left = // 错误思路
+        //             // device->changeOFS(ofs);// 错误思路
+        //         }
+        //     }
+        // }
+
+        // m_old_date = m_new_date; 
     }
 }
 
