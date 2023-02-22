@@ -13,4 +13,5 @@ add_library(logger STATIC ${SRC_DIR}/logger/logger.cpp)
 add_library(devices STATIC ${SRC_DIR}/logger/devices.cpp)
 
 add_executable(${PROJECT_NAME} ${SRC_DIR}/main.cpp)
-target_link_libraries(${PROJECT_NAME} libmysqlclient.so.21.2.32 sqlConnPool threadPool heapTimer logger)
+target_link_libraries(${PROJECT_NAME} libmysqlclient.so.21.2.32 sqlConnPool threadPool heapTimer logger devices)
+# add_executable(${PROJECT_NAME} ${SRC_DIR}/test.cpp)

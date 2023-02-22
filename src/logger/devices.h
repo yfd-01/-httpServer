@@ -1,8 +1,8 @@
 #ifndef _DEVICES_H
 #define _DEVICES_H
 
-#include <bits/types/FILE.h>
 #include <iostream>
+#include <fstream>
 
 enum MsgLevel {
     _NONE,
@@ -20,33 +20,30 @@ enum LoggerDevice {
 
 class Device {
 public:
-    Device();
-    virtual ~Device();
+    virtual ~Device() = default;
 
 public:
-    virtual void write(MsgLevel level, const char* msg) = 0;
-    virtual void write(MsgLevel level, const std::string& msg) = 0;
+    virtual void write(const char* msg) = 0;
+    virtual void write(const std::string& msg) = 0;
 };
 
 class Terminal: public Device {
 public:
-    Terminal();
-
-public:
-    void write(MsgLevel level, const char* msg);
-    void write(MsgLevel level, const std::string& msg);
+    void write(const char* msg);
+    void write(const std::string& msg);
 };
 
 class File: public Device {
 public:
-    File(FILE* fp);
+    File(std::ofstream& ofs);
+    ~File();
 
 public:
-    void write(MsgLevel level, const char* msg);
-    void write(MsgLevel level, const std::string& msg);
+    void write(const char* msg);
+    void write(const std::string& msg);
 
 private:
-    const FILE* fp;
+    std::ofstream m_ofs;
 };
 
 #endif  // _DEVICES_H

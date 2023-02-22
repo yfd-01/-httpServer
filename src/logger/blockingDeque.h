@@ -7,6 +7,7 @@
 #include <deque>
 #include <memory>
 #include <mutex>
+#include <iostream>
 
 
 template <class T>
@@ -106,7 +107,7 @@ T& BlockingDeque<T>::back() {
 template<class T>
 void BlockingDeque<T>::pushFront(const T& t) {
     std::unique_lock<std::mutex> locker(m_blockingLocker->mtx);
-
+    
     while (m_deq.size() >= m_capacity)
         m_blockingLocker->producerCond.wait(locker);
 
@@ -128,6 +129,8 @@ bool BlockingDeque<T>::pop(T& item) {
     item = m_deq.back();
     m_deq.pop_back();
 
+    m_blockingLocker->producerCond.notify_one();
+
     return true;
 }
 
@@ -147,6 +150,8 @@ bool BlockingDeque<T>::pop(T& item, int timeout) {
 
     item = m_deq.back();
     m_deq.pop_back();
+
+    m_blockingLocker->producerCond.notify_one();
     
     return true;
 }

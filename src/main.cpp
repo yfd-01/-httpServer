@@ -1,8 +1,8 @@
-#include "logger/devices.h"
 #include "pool/sqlConnPool.h"
 #include "pool/threadPool.h"
 #include "timer/heapTimer.h"
 #include "logger/logger.h"
+#include <chrono>
 #include <iostream>
 #include <functional>
 #include <unistd.h>
@@ -17,6 +17,24 @@
 void func() {
     std::cout<< "hello: "<< std::endl;
 }
+
+class Timer {
+public:
+    Timer() {
+        start = std::chrono::high_resolution_clock::now();
+    }
+
+    ~Timer() {
+        end = std::chrono::high_resolution_clock::now();
+        duration = end - start;
+
+        std::cout<< "Timer took: "<< duration.count() * 1000.0f<< "ms\n";
+    }
+
+private:
+    std::chrono::system_clock::time_point start, end;
+    std::chrono::duration<float> duration;
+};
 
 int main() {
 #if SQLCONNPOOL_TEST
@@ -107,13 +125,37 @@ int main() {
         // std::cout<< Logger::Instance()<< std::endl;
         // std::cout<< Logger::Instance()<< std::endl;
 
-        Logger::Instance()->init(MsgLevel::_INFO, LoggerDevice::_TERMINAL, "./log", ".log", 1024);
+        // Logger::Instance()->init(MsgLevel:: _DEBUG, LoggerDevice::_BOTH, "./log", ".log", 1024);
 
-        Logger::Instance()->write(MsgLevel::_INFO, "hello from logger!\n");
+        // Logger::Instance()->write(MsgLevel::_INFO, "hello from logger1!");
+        // Logger::Instance()->write(MsgLevel::_WARNING, "hello from logger2!");
+        // Logger::Instance()->write(MsgLevel::_NONE, "hello from logger3!");
+        // Logger::Instance()->write(MsgLevel::_DEBUG, "hello from logger4!");
+        // Logger::Instance()->write(MsgLevel::_ERROR, "hello from logger5!");
+        // ----------------------------------------------------------------------
+        
+        Logger::Instance()->init(MsgLevel::_INFO, LoggerDevice::_FILE, "./log", ".log", 1024);
+
+        {
+            Timer timer;
+
+            for (int i = 0; i < 999999; i++)
+                Logger::Instance()->write(MsgLevel::_INFO, "hello from logger1!");
+
+            std::cout<< "DONE\n";   // 6107.84ms
+        }
+
+        // ----------------------------------------------------------------------
+        // Logger::Instance()->init(MsgLevel::_INFO, LoggerDevice::_BOTH, "./log", ".log", 1024);
+        // Logger::Instance()->write(MsgLevel level, const char *msg)
     }
 #endif
 
     std::cin.get();
+
+#if LOGGER_TEST
+    Logger::Destroy();
+#endif
 
     return 0;
 }
