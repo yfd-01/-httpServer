@@ -19,11 +19,11 @@ struct LogFileDate {
     int month;
     int day;
 
-    bool operator== (const LogFileDate& d) {
+    bool operator== (const LogFileDate& d) const {
         return year == d.year && month == d.month && day == d.day;
     }
 
-    bool operator!= (const LogFileDate& d) {
+    bool operator!= (const LogFileDate& d) const {
         return !(*this == d);
     }
 };
@@ -65,6 +65,16 @@ private:
 
     void formatMsg(MsgLevel level, std::string& msg);
     void openLogFile(std::ofstream& ofs, const char* fileName);
+
+public:
+    void LOG_ERROR(const char* msg);
+    void LOG_ERROR(std::string& msg);
+    void LOG_WARNING(const char* msg);
+    void LOG_WARNING(std::string& msg);
+    void LOG_DEBUG(const char* msg);
+    void LOG_DEBUG(std::string& msg);
+    void LOG_INFO(const char* msg);
+    void LOG_INFO(std::string& msg);
 };
 
 #endif // _LOGGER_H

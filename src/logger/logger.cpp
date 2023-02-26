@@ -91,7 +91,7 @@ void Logger::write(MsgLevel level, const char* msg) {
 
     // reformat msg to standard msg
     std::string s_(msg);
-    
+    formatMsg(level, s_);
     m_blockingDeq->pushFront(s_);
 }
 
@@ -101,6 +101,7 @@ void Logger::write(MsgLevel level, std::string& msg) {
     if (level > m_level || level == _NONE)
         return;
 
+    formatMsg(level, msg);
     m_blockingDeq->pushFront(msg);
 }
 
@@ -175,28 +176,57 @@ void Logger::writeThreadJobs() {
             device->write(msg);
 
         // check if it is a new day
-        // if ((m_device == _FILE || m_device == _BOTH) && m_new_date != m_old_date) {
-        //     if (m_blockingDeq->size())
-        //         continue;
+        // 这种方式存在小问题 - 若运行到新的一天且阻塞队列存在元素，该部分元素会被写入新的日志文件（其本身属于前一天）
+        // 该问题只存在于tps巨大的情况，可扩大阻塞队列上限进行缓解
+        // 或可行思路: 可在devices中同时存储前置文件和当前文件的文件输入流句柄，用变量记录属于前一天元素的个数，写完后再进行日志文件更新
+        if (m_new_date != m_old_date && (m_device == _FILE || m_device == _BOTH)) {
+            std::ofstream ofs;
+            char fileName[LOG_FILE_NAME_MAX_LEN];
 
-        //     std::ofstream ofs;
-        //     char fileName[LOG_FILE_NAME_MAX_LEN];
+            fetchFileName(fileName);
+            openLogFile(ofs, fileName);
 
-        //     fetchFileName(fileName);
-        //     openLogFile(ofs, fileName);
+            for (auto& device : m_devices) {
+                if (device->type_ == _FILE) {
+                    device->changeOFS(ofs);
+                    break;
+                }
+            }
+        }
 
-        //     for (auto& device : m_devices) {
-        //         if (device->type_ == _FILE) {
-        //             // File::s_pre_file_rows_left = // 错误思路
-        //             // device->changeOFS(ofs);// 错误思路
-        //         }
-        //     }
-        // }
-
-        // m_old_date = m_new_date; 
+        m_old_date = m_new_date; 
     }
 }
 
 void Logger::raiseWriteThread() {
     Logger::Instance()->writeThreadJobs();
+}
+
+// ----
+void Logger::LOG_ERROR(const char* msg) {
+    write(_ERROR, msg);
+}
+void Logger::LOG_ERROR(std::string& msg) {
+    write(_ERROR, msg);
+}
+
+void Logger::LOG_WARNING(const char* msg) {
+    write(_WARNING, msg);
+}
+void Logger::LOG_WARNING(std::string& msg) {
+    write(_WARNING, msg);
+}
+
+void Logger::LOG_DEBUG(const char* msg) {
+    write(_DEBUG, msg);
+}
+void Logger::LOG_DEBUG(std::string& msg) {
+    write(_DEBUG, msg);
+}
+
+void Logger::LOG_INFO(const char* msg) {
+    write(_INFO, msg);
+}
+void Logger::LOG_INFO(std::string& msg) {
+    write(_INFO, msg);
 }

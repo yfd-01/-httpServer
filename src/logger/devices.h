@@ -49,7 +49,6 @@ public:
     void write(const std::string& msg);
 
     void changeOFS(std::ofstream& new_ofs);
-    static int s_pre_file_rows_left;
 private:
     std::ofstream m_ofs;
 };

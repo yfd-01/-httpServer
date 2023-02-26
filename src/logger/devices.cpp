@@ -37,5 +37,3 @@ void File::changeOFS(std::ofstream& new_ofs) {
     m_ofs.close();
     m_ofs = std::move(new_ofs);
 }
-
-int File::s_pre_file_rows_left = 0; // 错误思路
