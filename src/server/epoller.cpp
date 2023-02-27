@@ -44,3 +44,16 @@ bool Epoller::delFd(int fd) {
 int Epoller::wait(int timeout) {
     return epoll_wait(m_epoll_fd, &m_events[0], static_cast<int>(m_events.size()), timeout);
 }
+
+
+int Epoller::getFd(int i) const {
+    assert(i >= 0 && i < m_events.size());
+
+    return m_events[i].data.fd;
+}
+
+uint32_t Epoller::getEvents(int i) const {
+    assert(i >= 0 && i < m_events.size());
+
+    return m_events[i].events;
+}

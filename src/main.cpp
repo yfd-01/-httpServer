@@ -3,11 +3,14 @@
 #include "pool/threadPool.h"
 #include "timer/heapTimer.h"
 #include "logger/logger.h"
+#include <cassert>
 #include <chrono>
+#include <cstring>
 #include <iostream>
 #include <functional>
 #include <unistd.h>
 #include <string>
+#include <vector>
 
 #define SQLCONNPOOL_TEST    0
 #define THREADPOOL_TEST     0
@@ -152,6 +155,12 @@ int main() {
         // Logger::Instance()->write(_INFO, "aaa");
     }
 #endif
+    int i = -1;
+    if (i > strlen("hello")) {
+        std::cout<< "wwwwwwwwwwwwwwwww\n";
+    }else{
+        std::cout<< "YYYYYYYYYYYYYYYYYYYYYY\n";
+    }
 
     std::cin.get();
 

@@ -15,7 +15,8 @@ public:
     bool delFd(int fd);
 
     int wait(int timeout);
-
+    int getFd(int i) const;
+    uint32_t getEvents(int i) const;
 private:
     int m_epoll_fd;
     std::vector<struct epoll_event> m_events;
