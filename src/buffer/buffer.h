@@ -2,6 +2,7 @@
 #define _BUFFER_H
 
 #include <atomic>
+#include <cstddef>
 #include <vector>
 #include <cassert>
 #include <strings.h>
@@ -36,6 +37,7 @@ private:
 
     void ensureWritableBytes(size_t len);
     void makeSpace(size_t len);
+    void HasWritten(size_t len);
 };
 
 #endif  // _BUFFER_H

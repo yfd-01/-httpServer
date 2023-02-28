@@ -37,14 +37,27 @@ void Buffer::retrieveAll() {
 }
 
 
-void append(const char* str, size_t len) {
+void Buffer::append(const char* str, size_t len) {
     assert(str);
 
-
+    ensureWritableBytes(len);
+    std::copy(str, str + len, begin() + m_writePos);
+    HasWritten(len);
 }
-void append(const std::string& str);
-void append(const void* data, size_t len);
-void append(const Buffer& buffer);
+
+void Buffer::append(const std::string& str) {
+    append(str.data(), str.length());
+}
+
+void Buffer::append(const void* data, size_t len) {
+    assert(data);
+
+    append(static_cast<const char*>(data), len);
+}
+
+void Buffer::append(const Buffer& buffer) {
+    append(buffer.peek(), buffer.readableBytes());
+}
 
 void Buffer::ensureWritableBytes(size_t len) {
     if (writableBytes() < len)
@@ -57,7 +70,12 @@ void Buffer::makeSpace(size_t len) {
     if (prependableBytes() + writableBytes() < len)
         m_buffer.resize(m_writePos + len);
     else {
-        
+        size_t contentSize = readableBytes();
+        std::copy(begin() + m_readPos, begin() + m_writePos, begin());
+        m_readPos = 0;
+        m_writePos = m_readPos + contentSize;
+
+        assert(contentSize == readableBytes());
     }
 }
 

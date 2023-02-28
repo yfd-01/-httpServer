@@ -3,7 +3,6 @@
 
 class HttpRequest {
 public:
-    enum 
 
     void parse();
 };
