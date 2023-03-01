@@ -35,6 +35,10 @@ SqlConnPool::~SqlConnPool() {
     destoryPool();
 }
 
+SqlConnPool* SqlConnPool::Instance() {
+    return &s_sqlConnPool;
+}
+
 
 MYSQL* SqlConnPool::getConn() {
     MYSQL* conn = nullptr;
