@@ -36,6 +36,16 @@ void Buffer::retrieveAll() {
     m_writePos = 0;
 }
 
+void Buffer::hasWritten(size_t len) {
+    assert(len > 0);
+
+    m_writePos += len;
+}
+
+void Buffer::beenFilled() {
+    m_writePos = m_buffer.size();
+}
+
 
 void Buffer::append(const char* str, size_t len) {
     assert(str);
@@ -90,4 +100,8 @@ const char* Buffer::begin() const {
 
 char* Buffer::begin() {
     return &*m_buffer.begin();
+}
+
+char* Buffer::beginWritePtr() {
+    return begin() + m_writePos;
 }

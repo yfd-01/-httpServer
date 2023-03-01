@@ -22,10 +22,15 @@ public:
     void retrieveUntil(const char* end);
     void retrieveAll();
 
+    void hasWritten(size_t len);
+    void beenFilled();
+
     void append(const char* str, size_t len);
     void append(const std::string& str);
     void append(const void* data, size_t len);
     void append(const Buffer& buffer);
+
+    char* beginWritePtr();
 
 private:
     std::vector<char> m_buffer;
