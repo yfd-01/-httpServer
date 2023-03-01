@@ -40,6 +40,15 @@ const std::unordered_map<int, std::string> HttpResponse::CODE_ERR_PATH = {
 };
 
 
+void HttpResponse::init(std::string srcDir, std::string path, bool isKeepAlive) {
+    m_srcDir = srcDir;
+    m_path = path;
+    m_isKeepAlive = isKeepAlive;
+    m_code = -1;
+    m_memoryMappingFile = nullptr;
+    m_fileState = {};
+}
+
 void HttpResponse::makeResponse(Buffer& buff) {
 
     if (stat((m_srcDir + m_path).data(), &m_fileState) < 0 || S_ISDIR(m_fileState.st_mode))

@@ -15,7 +15,7 @@
 
 class HttpResponse {
 public:
-    HttpResponse(const char* srcDir, const char* path, bool isKeepAlive);
+    void init(std::string srcDir, std::string path, bool isKeepAlive);
     void makeResponse(Buffer& buff);
 
 private:

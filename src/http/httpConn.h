@@ -6,7 +6,10 @@
 #include <sys/types.h>
 #include <sys/uio.h>
 #include <errno.h>
+
 #include "../buffer/buffer.h"
+#include "httpRequest.h"
+#include "httpResponse.h"
 
 #define EXPANDED_BUFF_SIZE  65535
 #define CONTINUE_SEND_BYTES 10240
@@ -20,6 +23,7 @@ public:
     ssize_t write(int* writeErrno);
     
     static bool s_useET;
+    static std::string s_srcDir;
 
 public:
     int getFd() const;
@@ -42,6 +46,8 @@ private:
     struct iovec m_iovRead[2];
     struct iovec m_iovWrite[2];
 
+    HttpRequest m_request;
+    HttpResponse m_response;
 private:
     const int bytesToSend() const;
 };

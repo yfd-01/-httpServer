@@ -1,6 +1,9 @@
 #include "httpConn.h"
 #include <cstddef>
 
+bool HttpConn::s_useET;
+std::string HttpConn::s_srcDir;
+
 ssize_t HttpConn::read(int* readErrno) {
     ssize_t len = -1;
 
@@ -42,7 +45,14 @@ ssize_t HttpConn::write(int* readErrno) {
 
 
 bool HttpConn::process() {
-    
+    m_request.init();
+
+    if (m_readBuff.readableBytes() < 0)
+        return false;
+    else if (m_request.parse(m_readBuff))
+        m_response.init(s_srcDir, m_request.path(), m_request.isKeepAlive(), 400); // TODO
+    else
+        m_response.init(s_srcDir, m_request.path(), false, 400);
 }
 
 

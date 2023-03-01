@@ -1,6 +1,7 @@
 #ifndef _HTTP_REQUEST_H
 #define _HTTP_REQUEST_H
 
+#include <memory>
 #include <string>
 #include <regex>
 #include <unordered_map>
@@ -12,8 +13,6 @@
 
 class HttpRequest {
 public:
-    HttpRequest();
-
     enum PARSE_PHASE {
         _REQUEST_LINE,
         _HEADERS,
@@ -21,10 +20,14 @@ public:
         _FINISH
     };
 
+    void init();
+
     bool parse(Buffer& buff);
     std::string method() const;
     std::string version() const;
     std::string path() const;
+
+    bool isKeepAlive() const;
 
 private:
     struct RequestInfo {
@@ -45,7 +48,7 @@ private:
 
 private:
     PARSE_PHASE m_parsePhase;
-    RequestInfo* m_requestInfo;
+    std::unique_ptr<RequestInfo> m_requestInfo;
 
     bool _parseRequestLine(const std::string& str);
     void _parsePath();

@@ -1,6 +1,7 @@
 #include "httpRequest.h"
 #include <cassert>
 #include <cctype>
+#include <memory>
 #include <mysql/my_list.h>
 #include <mysql/mysql.h>
 #include <string>
@@ -10,7 +11,8 @@ std::unordered_set<std::string> HttpRequest::DEFAULT_HTML {
     "index", "login", "register", "welcome", "picture", "video", "error"
 };
 
-HttpRequest::HttpRequest() {
+void HttpRequest::init() {
+    m_requestInfo = std::make_unique<RequestInfo>();
     m_parsePhase = _REQUEST_LINE;
 }
 
@@ -260,4 +262,11 @@ std::string HttpRequest::path() const {
 
 std::string HttpRequest::version() const {
     return m_requestInfo->version;
+}
+
+bool HttpRequest::isKeepAlive() const {
+    if (m_requestInfo->headers.count("Connection") == 1)
+        return m_requestInfo->headers.find("Connection")->second == "keep-alive" && m_requestInfo->version == "1.1";
+
+    return false;
 }
