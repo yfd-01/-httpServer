@@ -1,9 +1,6 @@
 #include "sqlConnPool.h"
-#include <mutex>
-#include <mysql/mysql.h>
-#include <semaphore.h>
 
-SqlConnPool::SqlConnPool(int conn_nums, SqlConnInfo* info) {
+void SqlConnPool::init(int conn_nums, SqlConnInfo* info) {
     assert(conn_nums > 0);
 
     for (int i = 0; i < conn_nums; i++) {
@@ -11,14 +8,14 @@ SqlConnPool::SqlConnPool(int conn_nums, SqlConnInfo* info) {
         conn = mysql_init(conn);
 
         if(!conn) {
-            // LOG_ERROR()
-            exit(-1);
+            Logger::Instance()->LOG_ERROR("数据库连接实例启动失败 - 1");
+            exit(-2);
         }
         conn = mysql_real_connect(conn, info->host, info->user, info->pwd, info->db_name, info->port, nullptr, 0);
 
         if (!conn) {
-            // LOG_ERROR()
-            exit(-1);
+            Logger::Instance()->LOG_ERROR("数据库连接实例启动失败 - 2");
+            exit(-2);
         }
 
         m_conn_pool.push(conn);
@@ -27,8 +24,8 @@ SqlConnPool::SqlConnPool(int conn_nums, SqlConnInfo* info) {
     m_conn_nums = conn_nums;
     m_freed_count = conn_nums;
     sem_init(&m_sem, 0, m_conn_nums);
-
-    // LOG_INFO("数据库连接池启动")
+    
+    Logger::Instance()->LOG_INFO("数据库连接池启动成功");
 }
 
 SqlConnPool::~SqlConnPool() {
@@ -43,10 +40,10 @@ SqlConnPool* SqlConnPool::Instance() {
 MYSQL* SqlConnPool::getConn() {
     MYSQL* conn = nullptr;
 
-    if (m_conn_pool.empty()) {
-        // LOG_WARNNING()
-        return nullptr;
-    }
+    // if (m_conn_pool.empty()) {
+    //     // LOG_WARNNING()
+    //     return nullptr;
+    // }
 
     sem_wait(&m_sem);
 
@@ -84,5 +81,5 @@ void SqlConnPool::destoryPool() {
         m_conn_pool.pop();
     }
 
-    // LOG_INFO("数据库连接池销毁")
+    Logger::Instance()->LOG_INFO("数据库连接池销毁");
 }

@@ -1,4 +1,5 @@
 #include "httpResponse.h"
+#include <cstddef>
 #include <fcntl.h>
 #include <string>
 #include <sys/mman.h>
@@ -39,14 +40,18 @@ const std::unordered_map<int, std::string> HttpResponse::CODE_ERR_PATH = {
     { 404, "/404.html" },
 };
 
+HttpResponse::~HttpResponse() {
+    unmapFile();
+}
 
-void HttpResponse::init(std::string srcDir, std::string path, bool isKeepAlive) {
+void HttpResponse::init(std::string srcDir, std::string path, bool isKeepAlive, int code) {
+    unmapFile();
+
     m_srcDir = srcDir;
     m_path = path;
     m_isKeepAlive = isKeepAlive;
-    m_code = -1;
-    m_memoryMappingFile = nullptr;
-    m_fileState = {};
+    m_code = code;
+    m_fileState = { 0 };
 }
 
 void HttpResponse::makeResponse(Buffer& buff) {
@@ -62,6 +67,10 @@ void HttpResponse::makeResponse(Buffer& buff) {
         m_path = CODE_ERR_PATH.find(m_code)->second;
         stat((m_srcDir + m_path).data(), &m_fileState);
     }
+
+    addStatusLine(buff);
+    addHeaders(buff);
+    addContent(buff);
 }
 
 void HttpResponse::addStatusLine(Buffer& buff) {
@@ -138,3 +147,17 @@ void HttpResponse::replaceWithErrorContent(Buffer& buff, std::string msg) const 
     buff.append(body);
 }
 
+char* HttpResponse::mmFile() const {
+    return m_memoryMappingFile;
+}
+
+size_t HttpResponse::mmFileSize() const {
+    return m_fileState.st_size;
+}
+
+void HttpResponse::unmapFile() {
+    if (m_memoryMappingFile) {
+        munmap(m_memoryMappingFile, m_fileState.st_size);
+        m_memoryMappingFile = nullptr;
+    }
+}

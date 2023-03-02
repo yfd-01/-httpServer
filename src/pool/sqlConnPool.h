@@ -1,12 +1,12 @@
 #ifndef _SQL_CONN_POOL_H
 #define _SQL_CONN_POOL_H
 
-#include <cstddef>
 #include <mysql/mysql.h>
 #include <queue>
 #include <mutex>
 #include <semaphore.h>
-#include <cassert>
+
+#include "../logger/logger.h"
 
 struct SqlConnInfo {
     int port;
@@ -18,11 +18,13 @@ struct SqlConnInfo {
 
 class SqlConnPool {
 public:
-    SqlConnPool(int conn_nums, SqlConnInfo* info);
+    SqlConnPool() = default;
     ~SqlConnPool();
 
-public:
     static SqlConnPool* Instance();
+
+public:
+    void init(int conn_nums, SqlConnInfo* info);
     MYSQL* getConn();
     void freeConn(MYSQL* conn);
     void destoryPool();

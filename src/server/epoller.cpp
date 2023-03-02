@@ -17,7 +17,7 @@ Epoller::~Epoller() {
 bool Epoller::addFd(int fd, uint32_t events) {
     assert(fd >= 0);
 
-    epoll_event ev = {};
+    epoll_event ev = { 0 };
     ev.data.fd = fd;
     ev.events = events;
 
@@ -27,7 +27,7 @@ bool Epoller::addFd(int fd, uint32_t events) {
 bool Epoller::modFd(int fd, uint32_t events) {
     assert(fd >= 0);
 
-    epoll_event ev = {};
+    epoll_event ev = { 0 };
     ev.data.fd = fd;
     ev.events = events;
 

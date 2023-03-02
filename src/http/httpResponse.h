@@ -15,8 +15,15 @@
 
 class HttpResponse {
 public:
-    void init(std::string srcDir, std::string path, bool isKeepAlive);
+    HttpResponse() = default;
+    ~HttpResponse();
+
+    void init(std::string srcDir, std::string path, bool isKeepAlive, int code);
     void makeResponse(Buffer& buff);
+
+    char* mmFile() const;
+    size_t mmFileSize() const;
+    void unmapFile();
 
 private:
     static const std::unordered_map<std::string, std::string> SUFFIX_TYPE;
