@@ -3,8 +3,9 @@
 
 #include <string>
 #include <unordered_map>
-#include <sys/stat.h>
-#include <sys/mman.h>
+#include <sys/mman.h>   // mmap
+#include <fcntl.h>      // open
+
 #include "../buffer/buffer.h"
 #include "../logger/logger.h"
 

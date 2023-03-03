@@ -24,7 +24,7 @@ public:
     ~Server();
 
 public:
-    void running();
+    void run();
 
 private:
     static const int MAX_FD;

@@ -1,6 +1,4 @@
 #include "heapTimer.h"
-#include <cassert>
-#include <chrono>
 
 HeapTimer::HeapTimer() {
     m_heap.reserve(c_init_reserves);

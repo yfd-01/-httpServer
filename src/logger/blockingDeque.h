@@ -3,11 +3,10 @@
 
 #include <cassert>
 #include <chrono>
-#include <condition_variable>
 #include <deque>
 #include <memory>
+#include <condition_variable>
 #include <mutex>
-#include <iostream>
 
 
 template <class T>

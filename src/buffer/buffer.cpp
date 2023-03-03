@@ -1,5 +1,4 @@
 #include "buffer.h"
-#include <cassert>
 
 Buffer::Buffer(int initialSize): m_readPos(0), m_writePos(0) {
     m_buffer.reserve(initialSize);

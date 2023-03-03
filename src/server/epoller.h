@@ -3,7 +3,8 @@
 
 #include <sys/epoll.h>
 #include <vector>
-#include <unistd.h>
+#include <unistd.h>     // close
+#include <cassert>
 
 class Epoller {
 public:

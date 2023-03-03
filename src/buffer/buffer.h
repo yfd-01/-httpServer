@@ -2,10 +2,9 @@
 #define _BUFFER_H
 
 #include <atomic>
-#include <cstddef>
 #include <vector>
 #include <cassert>
-#include <strings.h>
+#include <cstring>
 
 class Buffer {
 public:

@@ -1,6 +1,4 @@
 #include "epoller.h"
-#include <cassert>
-#include <sys/epoll.h>
 
 Epoller::Epoller(int maxEvent) {
     m_epoll_fd = epoll_create(1);

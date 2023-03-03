@@ -1,11 +1,4 @@
 #include "httpRequest.h"
-#include <cassert>
-#include <cctype>
-#include <memory>
-#include <mysql/my_list.h>
-#include <mysql/mysql.h>
-#include <string>
-#include <strings.h>
 
 std::unordered_set<std::string> HttpRequest::DEFAULT_HTML {
     "index", "login", "register", "welcome", "picture", "video", "error"

@@ -1,12 +1,9 @@
 #ifndef _HTTP_CONN_H
 #define _HTTP_CONN_H
 
-#include <netinet/in.h>
 #include <arpa/inet.h>
-#include <sys/types.h>
-#include <sys/uio.h>
+#include <sys/uio.h>    // readv writev
 #include <errno.h>
-#include <sys/unistd.h>
 
 #include "../buffer/buffer.h"
 #include "httpRequest.h"

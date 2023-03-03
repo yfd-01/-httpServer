@@ -1,9 +1,4 @@
 #include "server.h"
-#include <asm-generic/socket.h>
-#include <cstdlib>
-#include <memory>
-#include <netinet/in.h>
-#include <sys/socket.h>
 
 const int Server::MAX_FD = 65535;
 
@@ -42,10 +37,14 @@ Server::Server(
 }
 
 Server::~Server() {
-
+    close(m_listenFd);
+    SqlConnPool::Instance()->destoryPool();
+    
+    Logger::Instance()->LOG_INFO("服务器关闭");
+    Logger::Destroy();
 }
 
-void Server::running() {
+void Server::run() {
     int timeout_interval = -1;
 
     while (1) {
@@ -251,7 +250,7 @@ bool Server::Initialize(bool lingerUsing) {
     // 端口复用
     bool reuseFlag = true;
     ret = setsockopt(m_listenFd, SOL_SOCKET, SO_REUSEADDR, (const char*)&reuseFlag, sizeof(bool));
-    if(ret == -1) {
+    if(ret < 0) {
         Logger::Instance()->LOG_ERROR("Sock option - reuse error");
         return false;
     }
@@ -260,6 +259,28 @@ bool Server::Initialize(bool lingerUsing) {
     addr.sin_family = AF_INET;
     addr.sin_addr.s_addr = htonl(INADDR_ANY);
     addr.sin_port = htons(m_port);
+
+    ret = bind(m_listenFd, (struct sockaddr*)&addr, sizeof(addr));
+    if (ret < 0) {
+        Logger::Instance()->LOG_ERROR("Bind socket error");
+        return false;
+    }
+
+    ret = listen(m_listenFd, 6);
+    if (ret < 0) {
+        Logger::Instance()->LOG_ERROR("Listen socket error");
+        return false;
+    }
+
+    if (!m_epoller->addFd(m_listenFd, m_listenEvents | EPOLLIN)) {
+        Logger::Instance()->LOG_ERROR("Add listenFd into epoll error");
+        return false;
+    }
+
+    setNonBlocking(m_listenFd);
+    Logger::Instance()->LOG_INFO("Server initialization done");
+
+    return true;
 }
 
 void Server::setNonBlocking(int fd) {

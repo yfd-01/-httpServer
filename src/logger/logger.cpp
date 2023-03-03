@@ -1,7 +1,5 @@
 #include "logger.h"
 #include "devices.h"
-#include <fstream>
-#include <string>
 
 Logger::Logger() {
     m_initilized = false;

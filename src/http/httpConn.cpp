@@ -1,7 +1,4 @@
 #include "httpConn.h"
-#include <cassert>
-#include <cstddef>
-#include <string>
 
 bool HttpConn::s_useET;
 std::string HttpConn::s_srcDir;

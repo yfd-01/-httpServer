@@ -1,15 +1,14 @@
 #ifndef _LOGGER_H
 #define _LOGGER_H
 
-#include "blockingDeque.h"
-#include "devices.h"
 #include <sys/stat.h>
 #include <memory>
 #include <mutex>
 #include <thread>
 #include <vector>
-#include <cassert>
-#include <ctime>
+
+#include "blockingDeque.h"
+#include "devices.h"
 
 #define LOG_FILE_NAME_MAX_LEN 256
 #define NOW_TIME_STR_MAX_LEN 64

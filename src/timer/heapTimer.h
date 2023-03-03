@@ -1,9 +1,9 @@
 #ifndef _HEAPTIMER_H
 #define _HEAPTIMER_H
 
+#include <vector>
 #include <chrono>
 #include <functional>
-#include <vector>
 #include <unordered_map>
 #include <cassert>
 

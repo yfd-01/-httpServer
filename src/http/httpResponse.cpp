@@ -1,9 +1,4 @@
 #include "httpResponse.h"
-#include <cstddef>
-#include <fcntl.h>
-#include <string>
-#include <sys/mman.h>
-#include <sys/stat.h>
 
 const std::unordered_map<std::string, std::string> HttpResponse::SUFFIX_TYPE = {
     { ".html",  "text/html" },
