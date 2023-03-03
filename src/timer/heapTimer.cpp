@@ -1,4 +1,5 @@
 #include "heapTimer.h"
+#include <cassert>
 
 HeapTimer::HeapTimer() {
     m_heap.reserve(c_init_reserves);
@@ -36,6 +37,13 @@ void HeapTimer::add(int tid, int timeout, const TimeoutCallBack& cb) {
 
         if (!__siftDown(i, m_heap.size() - 1)) __siftUp(i);
     }
+}
+
+void HeapTimer::adjust(int tid, int timeout) {
+    assert(!m_heap.empty() && m_map.count(tid) > 0);
+
+    m_heap[m_map[tid]].expire = Clock::now() + MS(timeout);
+    __siftDown(m_map[tid], m_heap.size());
 }
 
 void HeapTimer::drop(int tid) {

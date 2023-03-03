@@ -4,6 +4,10 @@ Buffer::Buffer(int initialSize): m_readPos(0), m_writePos(0) {
     m_buffer.reserve(initialSize);
 }
 
+Buffer::~Buffer() {
+    retrieveAll();
+}
+
 size_t Buffer::readableBytes() const {
     return m_writePos - m_readPos;
 }
@@ -51,7 +55,7 @@ void Buffer::append(const char* str, size_t len) {
 
     ensureWritableBytes(len);
     std::copy(str, str + len, begin() + m_writePos);
-    HasWritten(len);
+    hasWritten(len);
 }
 
 void Buffer::append(const std::string& str) {

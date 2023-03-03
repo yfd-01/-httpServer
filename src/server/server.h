@@ -42,7 +42,7 @@ private:
     std::unique_ptr<Epoller> m_epoller;
     std::unique_ptr<ThreadPool> m_threadPool;
 
-    std::unordered_map<int, HttpConn> m_users;
+    std::unordered_map<int, HttpConn*> m_users;
 
 private:
     void initEventsMode(int choice);

@@ -1,5 +1,7 @@
 #include "sqlConnPool.h"
 
+SqlConnPool SqlConnPool::s_sqlConnPool;
+
 void SqlConnPool::init(int conn_nums, SqlConnInfo* info) {
     assert(conn_nums > 0);
 

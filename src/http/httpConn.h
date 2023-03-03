@@ -2,6 +2,7 @@
 #define _HTTP_CONN_H
 
 #include <arpa/inet.h>
+#include <unistd.h>
 #include <sys/uio.h>    // readv writev
 #include <errno.h>
 
@@ -14,7 +15,7 @@
 
 class HttpConn {
 public:
-    HttpConn();
+    HttpConn() = default;
 
 public:
     void init(int connFd, const sockaddr_in& addr);

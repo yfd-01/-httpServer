@@ -4,7 +4,7 @@
 #include <atomic>
 #include <vector>
 #include <cassert>
-#include <cstring>
+#include <string.h>
 
 class Buffer {
 public:

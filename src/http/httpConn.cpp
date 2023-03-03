@@ -2,7 +2,7 @@
 
 bool HttpConn::s_useET;
 std::string HttpConn::s_srcDir;
-std::atomic<size_t> HttpConn::s_usersCount = 0;
+std::atomic<size_t> HttpConn::s_usersCount(0);
 
 void HttpConn::init(int connFd, const sockaddr_in &addr) {
     assert(connFd);
