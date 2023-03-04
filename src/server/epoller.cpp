@@ -2,7 +2,7 @@
 
 Epoller::Epoller(int maxEvent) {
     m_epoll_fd = epoll_create(1);
-    m_events.reserve(maxEvent);
+    m_events.resize(maxEvent);
 
     assert(m_epoll_fd >=0 && m_events.size() > 0);
 }

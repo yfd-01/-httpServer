@@ -7,6 +7,7 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <fcntl.h>
+#include <signal.h>
 
 #include "epoller.h"
 #include "../pool/threadPool.h"
@@ -28,6 +29,7 @@ public:
 
 private:
     static const int MAX_FD;
+    static short s_forceQuit;
 
     uint32_t m_listenEvents;
     uint32_t m_connEvents;
@@ -59,8 +61,14 @@ private:
     void _doWrite(HttpConn* conn);
     void _doProcess(HttpConn* conn);
 
-    bool Initialize(bool lingerUsing);
+    bool initialize(bool lingerUsing);
+    void serverShutdown();
     void setNonBlocking(int fd);
+
+    void depictServerInit(bool lingerUsing, int threadNums, int sqlConnNums, int loggerQueSize) const;
+    void depictServerStatus() const;
+
+    static void interruptionHandler(int signal);
 };
 
 #endif  // _SERVER_H

@@ -9,6 +9,8 @@
 #include <condition_variable>
 #include <thread>
 
+#include "../logger/logger.h"
+
 class ThreadPool {
 public:
     ThreadPool(int thread_nums);

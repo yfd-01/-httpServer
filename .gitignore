@@ -1,4 +1,5 @@
 build/
+log/
 .vscode/
 .idea/
 cmake-build-debug/

@@ -34,11 +34,14 @@ private:
 
 public:
     static Logger* Instance();
-    static void Destroy();
+    void Destroy();
     void init(MsgLevel level, LoggerDevice device, const char* path, const char* suffix, int dequeCapacity);
 
     void write(MsgLevel level, const char* msg);
     void write(MsgLevel level, std::string& msg);
+    void flushAll();
+
+    const std::tuple<std::string, std::string, std::string> loggerDesc() const;
 
 private:
     bool m_initilized;
@@ -48,12 +51,12 @@ private:
     const char* m_suffix;
     LogFileDate m_new_date, m_old_date;
     char m_nowTime[NOW_TIME_STR_MAX_LEN];
+    BlockingDeque<std::string>* m_blockingDeq;
 
     static Logger* s_logger;
     static std::mutex m_mtx;
 
     std::vector<std::unique_ptr<Device>> m_devices;
-    std::unique_ptr<BlockingDeque<std::string>> m_blockingDeq;
     std::unique_ptr<std::thread> m_writeThread;
 
 private:

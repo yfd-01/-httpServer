@@ -4,6 +4,8 @@ cmake_minimum_required(VERSION 3.16)
 project(httpServer)
 
 set(CMAKE_CXX_STANDARD 20)
+set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR})
+
 set(SRC_DIR ${PROJECT_SOURCE_DIR}/src)
 set(LIB_DIR ${PROJECT_SOURCE_DIR}/lib)
 

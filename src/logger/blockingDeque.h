@@ -40,16 +40,14 @@ private:
         std::condition_variable consumerCond;
     };
 
-    std::unique_ptr<BlockingLocker> m_blockingLocker;
+    BlockingLocker* m_blockingLocker;
 };
-
-#endif // _BLOCKING_DEQUE_H
 
 template<class T>
 BlockingDeque<T>::BlockingDeque(int capacity): m_capacity(capacity) {
     assert(capacity > 0);
 
-    m_blockingLocker = std::make_unique<BlockingLocker>();
+    m_blockingLocker = new BlockingLocker();
     m_closed = false;
 }
 
@@ -59,6 +57,7 @@ BlockingDeque<T>::~BlockingDeque() {
 
     m_blockingLocker->producerCond.notify_all();
     m_blockingLocker->consumerCond.notify_all();
+    // delete m_blockingLocker;
 }
 
 template<class T>
@@ -159,3 +158,5 @@ template<class T>
 void BlockingDeque<T>::flush() {
     m_blockingLocker->consumerCond.notify_one();
 }
+
+#endif // _BLOCKING_DEQUE_H

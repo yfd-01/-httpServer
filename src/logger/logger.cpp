@@ -13,6 +13,8 @@ Logger::~Logger() {
         while (!m_blockingDeq->empty()) 
             m_blockingDeq->flush();
 
+        delete m_blockingDeq;
+
         m_writeThread->join();
     }
 }
@@ -53,7 +55,7 @@ void Logger::init(
     m_suffix = suffix;
 
     if (!m_blockingDeq)         // blocking deque ready
-        m_blockingDeq = std::make_unique<BlockingDeque<std::string>>(dequeCapacity);
+        m_blockingDeq = new BlockingDeque<std::string>(dequeCapacity);
         
     char fileName[LOG_FILE_NAME_MAX_LEN];
     fetchFileName(fileName);    // get log file name
@@ -75,7 +77,7 @@ void Logger::init(
 
     if (!m_writeThread) {
         m_writeThread = std::make_unique<std::thread>(raiseWriteThread);    // write thread ready
-        m_writeThread->detach();
+        // m_writeThread->detach();
     }
 
     m_initilized = true;
@@ -200,6 +202,14 @@ void Logger::raiseWriteThread() {
     Logger::Instance()->writeThreadJobs();
 }
 
+void Logger::flushAll() {
+    for (auto& device : m_devices) {
+        if (device)
+            device->flush();
+    }
+}
+
+
 // ----
 void Logger::LOG_ERROR(const char* msg) {
     write(_ERROR, msg);
@@ -227,4 +237,45 @@ void Logger::LOG_INFO(const char* msg) {
 }
 void Logger::LOG_INFO(std::string& msg) {
     write(_INFO, msg);
+}
+
+const std::tuple<std::string, std::string, std::string> Logger::loggerDesc() const {
+    std::string levelStr = "";
+    std::string deviceStr = "";
+
+    switch (m_level) {
+        case _NONE:
+            levelStr += "禁用";
+            break;
+        case _ERROR:
+            levelStr += "错误类型";
+            break;
+        case _WARNING:
+            levelStr += "警告类型";
+            break;
+        case _DEBUG:
+            levelStr += "调试类型";
+            break;
+        case _INFO:
+            levelStr += "信息类型";
+            break;
+        default:
+            break;
+    }
+
+    switch (m_device) {
+        case _TERMINAL:
+            deviceStr += "仅终端";
+            break;
+        case _FILE:
+            deviceStr += "仅文件";
+            break;
+        case _BOTH:
+            deviceStr += "终端与文件";
+            break;
+        default:
+            break;
+    }
+
+    return std::make_tuple(levelStr, deviceStr, m_path);
 }

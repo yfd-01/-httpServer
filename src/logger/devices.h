@@ -25,6 +25,7 @@ public:
 public:
     virtual void write(const char* msg) = 0;
     virtual void write(const std::string& msg) = 0;
+    virtual void flush() = 0;
     virtual void changeOFS(std::ofstream& new_ofs) {}
 public:
     LoggerDevice type_;
@@ -37,6 +38,8 @@ public:
 public:
     void write(const char* msg);
     void write(const std::string& msg);
+
+    void flush();
 };
 
 class File: public Device {
@@ -49,6 +52,7 @@ public:
     void write(const std::string& msg);
 
     void changeOFS(std::ofstream& new_ofs);
+    void flush();
 private:
     std::ofstream m_ofs;
 };

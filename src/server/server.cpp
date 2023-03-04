@@ -1,6 +1,7 @@
 #include "server.h"
 
 const int Server::MAX_FD = 65535;
+short Server::s_forceQuit = 0;
 
 Server::Server(
     BaseConfig* baseConfig, SQLConfig* sqlConfig, LoggerConfig* loggerConfig,
@@ -29,25 +30,20 @@ Server::Server(
     m_timer = std::make_unique<HeapTimer>();
 
     // 服务器端口初始化
-    if (!Initialize(baseConfig->_lingerUsing)) {
+    if (!initialize(baseConfig->_lingerUsing)) {
         close(m_listenFd);
         Logger::Instance()->LOG_ERROR("服务器启动失败");
+
+        serverShutdown();
         exit(-1);
     }
+
+    depictServerInit(baseConfig->_lingerUsing, threadNums, sqlConnNums, loggerQueSize);
+    signal(SIGINT, Server::interruptionHandler);
 }
 
 Server::~Server() {
-    close(m_listenFd);
-
-    for (auto& pair : m_users) {
-        close(pair.first);
-        delete pair.second;
-    }
-
-    SqlConnPool::Instance()->destoryPool();
-    
-    Logger::Instance()->LOG_INFO("服务器关闭");
-    Logger::Destroy();
+    serverShutdown();
 }
 
 void Server::run() {
@@ -226,7 +222,7 @@ void Server::extendExpire(HttpConn* conn) {
         m_timer->adjust(conn->getFd(), m_timeoutMS);
 }
 
-bool Server::Initialize(bool lingerUsing) {
+bool Server::initialize(bool lingerUsing) {
     if (m_port < 1024 || m_port > 65535) {
         Logger::Instance()->LOG_ERROR("非合理端口");
         return false;
@@ -254,8 +250,8 @@ bool Server::Initialize(bool lingerUsing) {
     }
 
     // 端口复用
-    bool reuseFlag = true;
-    ret = setsockopt(m_listenFd, SOL_SOCKET, SO_REUSEADDR, (const char*)&reuseFlag, sizeof(bool));
+    int reuseFlag = 1;
+    ret = setsockopt(m_listenFd, SOL_SOCKET, SO_REUSEADDR, (const void*)&reuseFlag, sizeof(int));
     if(ret < 0) {
         Logger::Instance()->LOG_ERROR("Sock option - reuse error");
         return false;
@@ -289,8 +285,66 @@ bool Server::Initialize(bool lingerUsing) {
     return true;
 }
 
+void Server::interruptionHandler(int signal) {
+    if (!s_forceQuit) {
+        s_forceQuit += 1;
+
+        Logger::Instance()->LOG_INFO("Quiting...");
+        Logger::Instance()->Destroy();  // flush all remainings
+    }
+
+    // 强制退出
+    exit(-1);
+}
+
+void Server::serverShutdown() {
+    close(m_listenFd);
+
+    for (auto& pair : m_users) {
+        close(pair.first);
+        delete pair.second;
+    }
+
+    SqlConnPool::Instance()->destoryPool();
+    Logger::Instance()->LOG_INFO("服务器关闭");
+    Logger::Instance()->Destroy();
+}
+
 void Server::setNonBlocking(int fd) {
     assert(fd);
 
     fcntl(fd, F_SETFL, fcntl(fd, F_GETFL, 0) | O_NONBLOCK);
+}
+
+void Server::depictServerInit(bool lingerUsing, int threadNums, int sqlConnNums, int loggerQueSize) const {
+    assert(Logger::Instance());
+
+    std::string msg = "";
+    Logger* logger = Logger::Instance();
+    logger->LOG_INFO("----------------------HttpServer-------------------------");
+    
+    msg = "端口: " + std::to_string(m_port) + "   自动断开超时时延: " + std::to_string(m_timeoutMS) + " ms" + "   是否开启连接逗留: " + (lingerUsing ? "是" : "否");
+    logger->LOG_INFO(msg);
+
+    msg = std::string("listenFdMode: ") + (m_listenEvents & EPOLLET ? "ET" : "LT");
+    msg += std::string("   connFdMode: ") + (m_connEvents & EPOLLET ? "ET" : "LT");
+    logger->LOG_INFO(msg);
+
+    msg = "线程池中线程数量: " + std::to_string(threadNums) + "   数据库连接池中实例数量: " + std::to_string(sqlConnNums);
+    logger->LOG_INFO(msg);
+
+    auto [levelStr, deviceStr, pathStr] = logger->loggerDesc();
+    msg = "日志系统等级: " + levelStr + "   日志记录形式: " + deviceStr;
+    if (deviceStr != "仅终端")
+        msg += "   日志文件目录: " + pathStr;
+    logger->LOG_INFO(msg);
+
+    logger->LOG_INFO("---------------------------------------------------------");
+}
+
+/**
+ * @brief 描述服务器当前状态
+ */
+void Server::depictServerStatus() const {
+    
 }

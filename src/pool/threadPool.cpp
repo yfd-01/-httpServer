@@ -24,6 +24,7 @@ ThreadPool::ThreadPool(int thread_nums): m_thread_nums(thread_nums) {
         }).detach();
     }
 
+    Logger::Instance()->LOG_INFO("线程池启动成功");
     m_closed = false;
 }
 
