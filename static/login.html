@@ -50,7 +50,29 @@
                         "password": $("#psw-input").val()
                     },
                     success: (res) => {
-                        console.log(res);
+                        if (res)
+                            window.location = "/welcome.html"
+                    },
+                    error: () => {
+                        alert("登陆失败")
+                    }
+                })
+            })
+
+            $("#registerBtn").click(() => {
+                $.post({
+                    url: "login.html",
+                    data: {
+                        "isLogin": '0',
+                        "username": $("#usr-input").val(),
+                        "password": $("#psw-input").val()
+                    },
+                    success: (res) => {
+                        if (res)
+                            window.location = "/welcome.html"
+                    },
+                    error: () => {
+                        alert("注册失败")
                     }
                 })
             })
@@ -60,7 +82,7 @@
 <body>
     <div class="login-container">
         <div><input id="usr-input" type="text" placeholder="username" /></div>
-        <div><input id="psw-input" type="text" placeholder="password" /></div>
+        <div><input id="psw-input" type="password" placeholder="password" /></div>
         <div class="login-buttons"><button id="loginBtn">登陆</button><button id="registerBtn">注册</button></div>
     </div>
 </body>

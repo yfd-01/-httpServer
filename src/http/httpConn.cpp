@@ -73,7 +73,6 @@ ssize_t HttpConn::write(int* readErrno) {
             m_iovWrite[0].iov_base = static_cast<char*>(m_iovWrite[0].iov_base) + len;
             m_iovWrite[0].iov_len -= len;
         }
-
         
     } while(s_useET || bytesToSend() > CONTINUE_SEND_BYTES);    // ET模式 或者 待传输数据量大于阈值
 
@@ -114,9 +113,10 @@ bool HttpConn::doClose() {
         m_readBuff.retrieveAll();
 
         close(m_fd);
-
-        s_usersCount -= 1;
         m_isClosed = true;
+
+        if (s_usersCount)
+            s_usersCount -= 1;
 
         std::string msg = "connection close from:" + std::string(getIp()) + ':' + std::to_string(getPort()) + " - fd:" + std::to_string(m_fd);
         Logger::Instance()->LOG_INFO(msg);

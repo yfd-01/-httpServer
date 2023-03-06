@@ -19,8 +19,8 @@ bool HttpRequest::parse(Buffer& buff) {
     const char CRLF[] = "\r\n";
     
     while (buff.readableBytes() && m_parsePhase < _FINISH) {
-        const char* line = std::search(buff.peek(), buff.peek() + buff.readableBytes(), CRLF, CRLF + 2);
-        std::string lineStr(buff.peek(), line);
+        const char* lineEndPos = std::search(buff.peek(), buff.peek() + buff.readableBytes(), CRLF, CRLF + 2);
+        std::string lineStr(buff.peek(), lineEndPos);
 
         switch(m_parsePhase) {
             case _REQUEST_LINE:
@@ -36,8 +36,11 @@ bool HttpRequest::parse(Buffer& buff) {
             default:
                 break;
         }
-        if (line >= buff.peek() + buff.readableBytes()) break;
-        buff.retrieveUntil(line + 2);
+        
+        if (lineEndPos > buff.peek() + buff.readableBytes())
+            break;
+
+        buff.retrieveUntil((lineEndPos == buff.peek() + buff.readableBytes()) ? lineEndPos : lineEndPos + 2);
     }
 
     return true;
@@ -97,7 +100,7 @@ void HttpRequest::_parseBody(const std::string& lineStr) {
         else
             flag = userRegister(user, password);
 
-        m_requestInfo->path = flag ? "welcome.html" : "error.html";
+        m_requestInfo->path = flag ? "/welcome.html" : "/error.html";
     }
 
     m_parsePhase = _FINISH;
@@ -185,6 +188,7 @@ bool HttpRequest::userLogin(const std::string& usr, const std::string& psw) {
 
     if (mysql_query(conn, sqlStr)) {
         mysql_free_result(res);
+        SqlConnPool::Instance()->freeConn(conn);
         return false;
     }
 
@@ -195,6 +199,8 @@ bool HttpRequest::userLogin(const std::string& usr, const std::string& psw) {
 
         flag = psw == psw_;
     }
+
+    SqlConnPool::Instance()->freeConn(conn);
 
     return flag;
 }
@@ -220,13 +226,15 @@ bool HttpRequest::userRegister(const std::string& usr, const std::string& psw) {
 
     if (mysql_query(conn, sqlStr)) {
         mysql_free_result(res);
+        SqlConnPool::Instance()->freeConn(conn);
+        
         return false;
     }
 
     res = mysql_store_result(conn);
     if (res->row_count == 0) {
         bzero(sqlStr, 256);
-        snprintf(sqlStr, 256, "INSERT INTO login VALUES('%s', '%s')", usr.data(), psw.data());
+        snprintf(sqlStr, 256, "INSERT INTO login(username, password) VALUES('%s', '%s')", usr.data(), psw.data());
 
         std::string msg = "register sql: " + usr + " && " + psw;
         Logger::Instance()->LOG_INFO(msg);
