@@ -14,10 +14,9 @@ void HttpConn::init(int connFd, const sockaddr_in &addr) {
     m_readBuff.retrieveAll();
 
     s_usersCount += 1;
-    
-    std::string msg = "connection built from " + std::to_string(m_fd) + getIp() + ':' + std::to_string(getPort());
-    Logger::Instance()->LOG_INFO(msg);
-    msg = "current online users: " + std::to_string(s_usersCount);
+    m_isClosed = false;
+
+    std::string msg = "connection built from: " + std::string(getIp()) + ':' + std::to_string(getPort()) + " - fd: " + std::to_string(m_fd);
     Logger::Instance()->LOG_INFO(msg);
 }
 
@@ -107,19 +106,25 @@ bool HttpConn::process() {
     return true;
 }
 
-void HttpConn::doClose() {
-    m_writeBuff.retrieveAll();
-    m_readBuff.retrieveAll();
-
+bool HttpConn::doClose() {
     m_response.unmapFile();
-    close(m_fd);
 
-    s_usersCount -= 1;
+    if (!m_isClosed) {
+        m_writeBuff.retrieveAll();
+        m_readBuff.retrieveAll();
 
-    std::string msg = "connection close from " + std::to_string(m_fd) + getIp() + ':' + std::to_string(getPort());
-    Logger::Instance()->LOG_INFO(msg);
-    msg = "current online users: " + std::to_string(s_usersCount);
-    Logger::Instance()->LOG_INFO(msg);
+        close(m_fd);
+
+        s_usersCount -= 1;
+        m_isClosed = true;
+
+        std::string msg = "connection close from:" + std::string(getIp()) + ':' + std::to_string(getPort()) + " - fd:" + std::to_string(m_fd);
+        Logger::Instance()->LOG_INFO(msg);
+
+        return true;
+    }
+
+    return false;
 }
 
 

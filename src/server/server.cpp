@@ -3,6 +3,16 @@
 const int Server::MAX_FD = 65535;
 short Server::s_forceQuit = 0;
 
+/**
+ * @brief Construct a new Server:: Server object
+ * 
+ * @param baseConfig    服务器基础配置
+ * @param sqlConfig     数据库配置
+ * @param loggerConfig  日志系统配置
+ * @param threadNums    事务线程数量
+ * @param sqlConnNums   数据库连接池中连接实例数量
+ * @param loggerQueSize 日志系统阻塞队列大小
+ */
 Server::Server(
     BaseConfig* baseConfig, SQLConfig* sqlConfig, LoggerConfig* loggerConfig,
     int threadNums, int sqlConnNums, int loggerQueSize
@@ -10,7 +20,7 @@ Server::Server(
     char* srcDir = getcwd(nullptr, 256);
 
     HttpConn::s_usersCount = 0;
-    HttpConn::s_srcDir = std::string(srcDir) + "/static/";  // 静态资源路径
+    HttpConn::s_srcDir = std::string(srcDir) + "/static";  // 静态资源路径
 
     m_port = baseConfig->_port;
     m_timeoutMS = baseConfig->_timeoutMS;
@@ -39,13 +49,16 @@ Server::Server(
     }
 
     depictServerInit(baseConfig->_lingerUsing, threadNums, sqlConnNums, loggerQueSize);
-    signal(SIGINT, Server::interruptionHandler);
+    signal(SIGINT, Server::interruptionHandler);    // 退出信号捕获
 }
 
 Server::~Server() {
     serverShutdown();
 }
 
+/**
+ * @brief 
+ */
 void Server::run() {
     int timeout_interval = -1;
 
@@ -91,18 +104,21 @@ void Server::handleListen() {
         }
 
         // add client
-        if (m_timeoutMS > 0) 
-            m_timer->add(fd, m_timeoutMS, std::bind(&Server::handleClose, this, m_users[fd]));
-
         if (m_users.count(fd) == 0) 
             m_users.emplace(fd, new HttpConn());
-            
+
         m_users[fd]->init(fd, addr);
+
+        if (m_timeoutMS > 0) 
+            // 访问unordered_map没有的key会默认调用无参构造
+            m_timer->add(fd, m_timeoutMS, std::bind(&Server::handleClose, this, m_users[fd]));
 
         m_epoller->addFd(fd, EPOLLIN | m_connEvents);
 
         setNonBlocking(fd);
-        std::string msg = "Client" + std::to_string(fd) + " conn in";
+        std::string msg = "Client - " + std::to_string(fd) + " conn in";
+        Logger::Instance()->LOG_INFO(msg);
+        msg = "current online users: " + std::to_string(HttpConn::s_usersCount);
         Logger::Instance()->LOG_INFO(msg);
 
     } while (m_listenEvents & EPOLLET); // accept all if listen mode is ET
@@ -111,11 +127,14 @@ void Server::handleListen() {
 void Server::handleClose(HttpConn* conn) {
     assert(conn);
 
-    conn->doClose();
-    m_epoller->delFd(conn->getFd());
+    if (conn->doClose()) {
+        std::string msg = "Client - " + std::to_string(conn->getFd()) + " conn close";
+        Logger::Instance()->LOG_INFO(msg);
+        msg = "current online users: " + std::to_string(HttpConn::s_usersCount);
+        Logger::Instance()->LOG_INFO(msg);
+    }
 
-    std::string msg = "Client" + std::to_string(conn->getFd()) + " conn close";
-    Logger::Instance()->LOG_INFO(msg);
+    m_epoller->delFd(conn->getFd());
 }
 
 void Server::handleRead(HttpConn* conn) {

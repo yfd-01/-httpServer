@@ -1,4 +1,5 @@
 #include "httpResponse.h"
+#include <string>
 
 const std::unordered_map<std::string, std::string> HttpResponse::SUFFIX_TYPE = {
     { ".html",  "text/html" },
@@ -91,6 +92,7 @@ void HttpResponse::addHeaders(Buffer& buff) {
         buff.append(std::string("close") + CRLF);
 
     buff.append(std::string("Content-Type: ") + getFileType() + CRLF);
+    buff.append(std::string("Server: yfdHttpServer") + CRLF);
 }
 
 void HttpResponse::addContent(Buffer& buff) {
@@ -134,9 +136,9 @@ void HttpResponse::replaceWithErrorContent(Buffer& buff, std::string msg) const 
     std::string body = "";
 
     body += "<html><title>Error</title>";
-    body += "<body bgcolor=\"ffffff\">";
+    body += "<body bgcolor=\"f3f5f5\">";
     body += "<p>" + msg + "</p>";
-    body += "<hr><em>TinyWebServer</em></body></html>";
+    body += "<hr><em><strong>HttpServer - yfd</strong></em></body></html>";
 
     buff.append("Content-length: " + std::to_string(body.size()) + CRLF + CRLF);
     buff.append(body);

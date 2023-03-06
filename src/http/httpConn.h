@@ -34,7 +34,7 @@ public:
     int getPort() const;
 
     bool process();
-    void doClose();
+    bool doClose();
 
     const int bytesToSend() const;
     const bool isKeepAlive() const;
@@ -42,6 +42,7 @@ public:
 private:
     int m_fd;
     struct sockaddr_in m_addr;
+    bool m_isClosed;
 
     Buffer m_readBuff;
     Buffer m_writeBuff;

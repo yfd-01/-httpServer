@@ -12,20 +12,56 @@
         }
 
         .login-container {
-
+            position: absolute;
+            left: 50%;
+            top: 30%;
+            transform: translate(-50%, -50%);
+            width: 200px;
         }
 
         .login-container input {
-            
+            height: 30px;
+            width: 100%;
+            outline: none;
+            margin: 3px 0;
+        }
+
+        button {
+            outline: none;
+            margin: 3px 0;
+            width: 80px;
+        }
+
+        .login-buttons {
+            display: flex;
+            justify-content: space-between;
         }
     </style>
+
+    <script src="js/jquery.js"></script>
+    <script>
+        $(document).ready(() => {
+            $("#loginBtn").click(() => {
+                $.post({
+                    url: "login.html",
+                    data: {
+                        "isLogin": '1',
+                        "username": $("#usr-input").val(),
+                        "password": $("#psw-input").val()
+                    },
+                    success: (res) => {
+                        console.log(res);
+                    }
+                })
+            })
+        })
+    </script>
 </head>
 <body>
     <div class="login-container">
-        <div><input type="text" placeholder="username" /></div>
-        <div><input type="text" placeholder="password" /></div>
-        <br />
-        <div><button>登陆</button><button>注册</button></div>
+        <div><input id="usr-input" type="text" placeholder="username" /></div>
+        <div><input id="psw-input" type="text" placeholder="password" /></div>
+        <div class="login-buttons"><button id="loginBtn">登陆</button><button id="registerBtn">注册</button></div>
     </div>
 </body>
 </html>

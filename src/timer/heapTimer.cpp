@@ -1,5 +1,5 @@
 #include "heapTimer.h"
-#include <cassert>
+#include <iostream>
 
 HeapTimer::HeapTimer() {
     m_heap.reserve(c_init_reserves);

@@ -54,17 +54,18 @@ BlockingDeque<T>::BlockingDeque(int capacity): m_capacity(capacity) {
 template<class T>
 BlockingDeque<T>::~BlockingDeque() {
     clear();
-
-    m_blockingLocker->producerCond.notify_all();
-    m_blockingLocker->consumerCond.notify_all();
-    // delete m_blockingLocker;
 }
 
 template<class T>
 void BlockingDeque<T>::clear() {
-    std::lock_guard<std::mutex> locker(m_blockingLocker->mtx);
-    m_deq.clear();
-    m_closed = true;
+    {
+        std::lock_guard<std::mutex> locker(m_blockingLocker->mtx);
+        m_deq.clear();
+        m_closed = true;
+    }
+
+    m_blockingLocker->producerCond.notify_all();    // 先将close标志置为true，再唤醒消费者锁从pop函数中为假返回，使得logger所执行的线程
+    m_blockingLocker->consumerCond.notify_all();    // 跳出，该阻塞线程结束后使得主线程得及结束
 }
 
 

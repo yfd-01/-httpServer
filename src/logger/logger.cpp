@@ -13,8 +13,7 @@ Logger::~Logger() {
         while (!m_blockingDeq->empty()) 
             m_blockingDeq->flush();
 
-        delete m_blockingDeq;
-
+        m_blockingDeq->clear();
         m_writeThread->join();
     }
 }

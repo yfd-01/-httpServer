@@ -84,7 +84,7 @@ void HttpRequest::_parseHeaders(const std::string& lineStr) {
 }
 
 void HttpRequest::_parseBody(const std::string& lineStr) {
-    if (m_requestInfo->method == "POST" && m_requestInfo->headers["Content-Type"] == "application/x-www-form-urlencoded" && lineStr.length()) {
+    if (m_requestInfo->method == "POST" && m_requestInfo->headers["Content-Type"].find("application/x-www-form-urlencoded") != std::string::npos && lineStr.length()) {
         m_requestInfo->body = lineStr;
         _urlDecode();
 
