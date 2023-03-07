@@ -42,12 +42,18 @@
     <script>
         $(document).ready(() => {
             $("#loginBtn").click(() => {
+                const usr = $("#usr-input").val().trim();
+                const psw = $("#psw-input").val().trim();
+
+                if (usr === "" || psw === "")
+                    return
+
                 $.post({
                     url: "login.html",
                     data: {
                         "isLogin": '1',
-                        "username": $("#usr-input").val(),
-                        "password": $("#psw-input").val()
+                        "username": usr,
+                        "password": psw
                     },
                     success: (res) => {
                         if (res)
@@ -60,12 +66,18 @@
             })
 
             $("#registerBtn").click(() => {
+                const usr = $("#usr-input").val().trim();
+                const psw = $("#psw-input").val().trim();
+
+                if (usr === "" || psw === "")
+                    return
+
                 $.post({
                     url: "login.html",
                     data: {
                         "isLogin": '0',
-                        "username": $("#usr-input").val(),
-                        "password": $("#psw-input").val()
+                        "username": usr,
+                        "password": psw
                     },
                     success: (res) => {
                         if (res)

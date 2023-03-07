@@ -5,6 +5,7 @@
 #include <unordered_map>
 #include <sys/mman.h>   // mmap
 #include <fcntl.h>      // open
+#include <unistd.h>
 
 #include "../buffer/buffer.h"
 #include "../logger/logger.h"

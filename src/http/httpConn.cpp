@@ -65,7 +65,7 @@ ssize_t HttpConn::write(int* readErrno) {
             break;
         else if (static_cast<size_t>(len) > m_iovWrite[0].iov_len) {    // 保证都是无符号比较
             m_iovWrite[1].iov_base = static_cast<char*>(m_iovWrite[1].iov_base) + (len - m_iovWrite[0].iov_len);
-            m_iovWrite[1].iov_len = len - m_iovWrite[0].iov_len;
+            m_iovWrite[1].iov_len -= len - m_iovWrite[0].iov_len;
 
             if (m_iovWrite[0].iov_len) 
                 m_iovWrite[0].iov_len = 0;

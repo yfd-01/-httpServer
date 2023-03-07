@@ -11,17 +11,32 @@
             background-color: rgb(243, 245, 245);
         }
         
-        div {
+        .container {
             position: absolute;
             left: 50%;
-            top: 20%;
+            top: 36%;
             transform: translate(-50%, -50%);
             font-size: 48px;
             font-weight: bolder;
         }
+
+        .links {
+            font-size: 26px;
+            text-decoration: none;
+            display: flex;
+            justify-content: space-around;
+        }
     </style>
 </head>
 <body>
-    <div>WELCOME!!!</div>
+    <div class="container">
+        <div class="top">WELCOME!!!</div>
+        <hr/>
+        <div class="links">
+            <a href="/login.html">登陆</a>
+            <a href="/picture.html">图片</a>
+            <a href="/video.html">视频</a>
+        </div>
+    </div>
 </body>
 </html>

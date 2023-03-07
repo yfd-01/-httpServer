@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HttpServer - Video Test</title>
+    <link rel="shortcut icon" href="./icon.jpeg">
+    <style>
+        body {
+            background-color: rgb(243, 245, 245);
+        }
+
+        video {
+            height: 400px;
+            width: 800px;
+        }
+
+        .video-container {
+            position: absolute;
+            left: 50%;
+            top: 40%;
+            transform: translate(-50%, -50%);
+        }
+    </style>
+</head>
+<body>
+    <div class="video-container">
+        <video controls muted>
+            <source src="./video/1.mp4" type="video/mp4">
+        </video>
+    </div>
+</body>
+</html>
