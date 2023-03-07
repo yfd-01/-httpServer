@@ -10,12 +10,12 @@ ThreadPool::ThreadPool(int thread_nums): m_thread_nums(thread_nums) {
 
             while (1) {
                 if (!m_tasks_queue.empty()) {
-                    mtx.unlock();
                     auto task = std::move(m_tasks_queue.front());
                     m_tasks_queue.pop();                    
-                    mtx.lock();
 
+                    mtx.unlock();
                     task();
+                    mtx.lock();
                 }else if(m_closed) { break; }
                 else {
                     m_locker->cond.wait(mtx);
