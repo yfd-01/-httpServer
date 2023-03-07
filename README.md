@@ -17,9 +17,8 @@ create table login (
 - [ ] CODE COMMENTS COMPLETED
 - [ ] PERFORMANCE TESTING COMPLETED
 
-
 <br/>
 <br/>
 <br/>
-本项目以学习目的编写，大量参考开源代码**[WebServer](https://github.com/markparticle/WebServer)**、**[muduo](https://github.com/chenshuo/muduo)**以及《Linux高性能服务器编程 - 游双著》，对部分模块进行了调整，并附上了相关注释。
+本项目以学习目的编写，大量参考开源代码**<a href="https://github.com/markparticle/WebServer">WebServer</a>**、**<a href="https://github.com/chenshuo/muduo">muduo</a>**以及《Linux高性能服务器编程 - 游双著》，对部分模块进行了调整，并附上了相关注释。
 
