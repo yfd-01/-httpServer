@@ -11,17 +11,39 @@
             background-color: rgb(243, 245, 245);
         }
         
-        div {
+        .container {
             position: absolute;
             left: 50%;
-            top: 20%;
+            top: 30%;
             transform: translate(-50%, -50%);
+        }
+
+        .top {
             font-size: 48px;
             font-weight: bolder;
+        }
+
+        .btm {
+            font-size: 26px;
+            display: flex;
+            justify-content: right;
+        }
+
+        a {
+            text-decoration: none;
+            color: #000;
+        }
+
+        a:hover{
+            text-decoration: underline;
         }
     </style>
 </head>
 <body>
-    <div>INDEX PAGE</div>
+    <div class="container">
+        <div class="top">INDEX PAGE</div>
+        <br/>
+        <div class="btm">-<em><a href="/login.html">HttpServer(Click Me)</a></em></div>
+    </div>
 </body>
 </html>
