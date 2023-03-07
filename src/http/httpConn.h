@@ -15,7 +15,8 @@
 
 class HttpConn {
 public:
-    HttpConn() = default;
+    HttpConn();
+    ~HttpConn();
 
 public:
     void init(int connFd, const sockaddr_in& addr);

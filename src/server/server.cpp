@@ -75,11 +75,11 @@ void Server::run() {
             if (fd == m_listenFd) 
                 handleListen();
             else if (events & (EPOLLRDHUP | EPOLLHUP | EPOLLERR)) 
-                handleClose(m_users[fd]);
+                handleClose(&m_users[fd]);
             else if (events & EPOLLIN) 
-                handleRead(m_users[fd]);
+                handleRead(&m_users[fd]);
             else if (events & EPOLLOUT) 
-                handleWrite(m_users[fd]);
+                handleWrite(&m_users[fd]);
             else {
                 std::string msg = "unresolved events: " + std::to_string(events);
                 Logger::Instance()->LOG_ERROR(msg);
@@ -104,14 +104,14 @@ void Server::handleListen() {
         }
 
         // add client
-        if (m_users.count(fd) == 0) 
-            m_users.emplace(fd, new HttpConn());
+        // if (m_users.count(fd) == 0) 
+        //     m_users.emplace(fd, new HttpConn());
 
-        m_users[fd]->init(fd, addr);
+        m_users[fd].init(fd, addr);
 
         if (m_timeoutMS > 0) 
             // 访问unordered_map没有的key会默认调用无参构造
-            m_timer->add(fd, m_timeoutMS, std::bind(&Server::handleClose, this, m_users[fd]));
+            m_timer->add(fd, m_timeoutMS, std::bind(&Server::handleClose, this, &m_users[fd]));
 
         m_epoller->addFd(fd, EPOLLIN | m_connEvents);
 
@@ -319,10 +319,10 @@ void Server::interruptionHandler(int signal) {
 void Server::serverShutdown() {
     close(m_listenFd);
 
-    for (auto& pair : m_users) {
-        close(pair.first);
-        delete pair.second;
-    }
+    // for (auto& pair : m_users) {
+    //     close(pair.first);
+    //     delete pair.second;
+    // }
 
     SqlConnPool::Instance()->destoryPool();
     Logger::Instance()->LOG_INFO("服务器关闭");

@@ -4,6 +4,16 @@ bool HttpConn::s_useET;
 std::string HttpConn::s_srcDir;
 std::atomic<size_t> HttpConn::s_usersCount(0);
 
+HttpConn::HttpConn() {
+    m_fd = -1;
+    m_addr = { 0 };
+    m_isClosed = true;
+}
+
+HttpConn::~HttpConn() {
+    doClose();
+}
+
 void HttpConn::init(int connFd, const sockaddr_in &addr) {
     assert(connFd);
 
