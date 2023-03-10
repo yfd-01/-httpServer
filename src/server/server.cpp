@@ -1,7 +1,7 @@
 #include "server.h"
 
-const int Server::MAX_FD = 65535;
-short Server::s_forceQuit = 0;
+const int Server::MAX_FD = 65535;   // 最大的连接数
+short Server::s_forceQuit = 0;      // 强退等待标识
 
 /**
  * @brief Construct a new Server:: Server object
@@ -88,6 +88,9 @@ void Server::run() {
     }
 }
 
+/**
+ * @brief 处理新连接事务
+ */
 void Server::handleListen() {
     struct sockaddr_in addr;
     socklen_t len = sizeof(addr);
@@ -107,11 +110,12 @@ void Server::handleListen() {
         // if (m_users.count(fd) == 0) 
         //     m_users.emplace(fd, new HttpConn());
 
+        // 初始化Conn类
+        // 访问unordered_map没有的key会默认调用无参构造
         m_users[fd].init(fd, addr);
 
         if (m_timeoutMS > 0) 
-            // 访问unordered_map没有的key会默认调用无参构造
-            m_timer->add(fd, m_timeoutMS, std::bind(&Server::handleClose, this, &m_users[fd]));
+            m_timer->add(fd, m_timeoutMS, std::bind(&Server::handleClose, this, &m_users[fd]));     // 将该fd绑定到最小堆计时器上，同时cb设置为断开连接事件
 
         m_epoller->addFd(fd, EPOLLIN | m_connEvents);
 
@@ -124,6 +128,11 @@ void Server::handleListen() {
     } while (m_listenEvents & EPOLLET); // accept all if listen mode is ET
 }
 
+/**
+ * @brief 处理断开事务
+ * 
+ * @param conn ptr
+ */
 void Server::handleClose(HttpConn* conn) {
     assert(conn);
 
@@ -137,28 +146,43 @@ void Server::handleClose(HttpConn* conn) {
     m_epoller->delFd(conn->getFd());
 }
 
+/**
+ * @brief 处理读取事务
+ * 
+ * @param conn ptr
+ */
 void Server::handleRead(HttpConn* conn) {
     assert(conn);
 
-    extendExpire(conn);
-    m_threadPool->addTask(std::bind(&Server::_doRead, this, conn));
+    extendExpire(conn);     // 该连接被触发，延长活动时间
+    m_threadPool->addTask(std::bind(&Server::_doRead, this, conn));     // 读操作丢入线程池
 }
 
+/**
+ * @brief 读操作
+ * 
+ * @param conn ptr
+ */
 void Server::_doRead(HttpConn* conn) {
     assert(conn);
 
     int ret = -1;
     int readErrno = 0;
     
-    ret = conn->read(&readErrno);
+    ret = conn->read(&readErrno);   //  从fd读取数据放入readBuffer
     if (ret < 0 && readErrno != EAGAIN) {
         handleClose(conn);
         return;
     }
 
-    _doProcess(conn);
+    _doProcess(conn);   // 开始处理读入数据
 }
 
+/**
+ * @brief 处理写出事务
+ * 
+ * @param conn ptr
+ */
 void Server::handleWrite(HttpConn* conn) {
     assert(conn);
 
@@ -166,13 +190,18 @@ void Server::handleWrite(HttpConn* conn) {
     m_threadPool->addTask(std::bind(&Server::_doWrite, this, conn));
 }
 
+/**
+ * @brief 写操作
+ * 
+ * @param conn ptr
+ */
 void Server::_doWrite(HttpConn* conn) {
     assert(conn);
 
     int ret = -1;
     int writeErrno = 0;
 
-    ret = conn->write(&writeErrno);
+    ret = conn->write(&writeErrno);    //  从writeBuffer(响应对象)和mmap(资源文件)映射写出至fd
 
     if (conn->bytesToSend() == 0) { // has send all
         if (conn->isKeepAlive()) {
@@ -189,15 +218,25 @@ void Server::_doWrite(HttpConn* conn) {
     handleClose(conn);
 }
 
+/**
+ * @brief 解析readBuffer，组装响应对象，映射至iovWrite
+ * 
+ * @param conn ptr
+ */
 void Server::_doProcess(HttpConn* conn) {
-    if (conn->process())
+    if (conn->process())    // 处理是否成功代表响应对象是否成功组装
         m_epoller->modFd(conn->getFd(), m_connEvents | EPOLLOUT);
     else
         m_epoller->modFd(conn->getFd(), m_connEvents | EPOLLIN);
 }
 
+/**
+ * @brief 服务器监听端口与客户连接端口模式设定
+ * 
+ * @param choice 1~3
+ */
 void Server::initEventsMode(int choice) {
-    m_listenEvents = EPOLLRDHUP;
+    m_listenEvents = EPOLLRDHUP;    // EPOLLRDHUP - socket关闭触发
     m_connEvents = EPOLLRDHUP | EPOLLONESHOT;   // EPOLLONESHOT - 保证一个socket连接在任一时刻只被一个线程处理
 
     switch(choice) {
@@ -221,6 +260,12 @@ void Server::initEventsMode(int choice) {
     HttpConn::s_useET = (m_connEvents & EPOLLET);
 }
 
+/**
+ * @brief 服务器满负载拒绝连接
+ * 
+ * @param fd 用户fd
+ * @param msg 返回消息
+ */
 void Server::fulledReject(int fd, const char* msg) {
     assert(fd > 0);
 
@@ -234,6 +279,11 @@ void Server::fulledReject(int fd, const char* msg) {
     close(fd);
 }
 
+/**
+ * @brief 延长连接活动时间
+ * 
+ * @param conn ptr
+ */
 void Server::extendExpire(HttpConn* conn) {
     assert(conn->getFd() > 0);
 
@@ -241,6 +291,13 @@ void Server::extendExpire(HttpConn* conn) {
         m_timer->adjust(conn->getFd(), m_timeoutMS);
 }
 
+/**
+ * @brief 服务器初始化
+ * 
+ * @param lingerUsing 是否关闭逗留
+ * @return true  启动成功
+ * @return false 启动失败
+ */
 bool Server::initialize(bool lingerUsing) {
     if (m_port < 1024 || m_port > 65535) {
         Logger::Instance()->LOG_ERROR("非合理端口");
@@ -304,6 +361,11 @@ bool Server::initialize(bool lingerUsing) {
     return true;
 }
 
+/**
+ * @brief 中断信号捕捉处理
+ * 
+ * @param signal
+ */
 void Server::interruptionHandler(int signal) {
     if (!s_forceQuit) {
         s_forceQuit += 1;
@@ -316,6 +378,9 @@ void Server::interruptionHandler(int signal) {
     exit(-1);
 }
 
+/**
+ * @brief 关闭服务器
+ */
 void Server::serverShutdown() {
     close(m_listenFd);
 
@@ -329,12 +394,20 @@ void Server::serverShutdown() {
     Logger::Instance()->Destroy();
 }
 
+/**
+ * @brief 将fd设置为非阻塞
+ * 
+ * @param fd
+ */
 void Server::setNonBlocking(int fd) {
     assert(fd);
 
     fcntl(fd, F_SETFL, fcntl(fd, F_GETFL, 0) | O_NONBLOCK);
 }
 
+/**
+ * @brief 描述服务器初始化状态
+ */
 void Server::depictServerInit(bool lingerUsing, int threadNums, int sqlConnNums, int loggerQueSize) const {
     assert(Logger::Instance());
 
@@ -365,5 +438,5 @@ void Server::depictServerInit(bool lingerUsing, int threadNums, int sqlConnNums,
  * @brief 描述服务器当前状态
  */
 void Server::depictServerStatus() const {
-    
+    // ---
 }

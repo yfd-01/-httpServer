@@ -30,6 +30,12 @@ void HttpConn::init(int connFd, const sockaddr_in &addr) {
     Logger::Instance()->LOG_INFO(msg);
 }
 
+/**
+ * @brief 连接数据读取
+ * 
+ * @param readErrno 带出错误
+ * @return ssize_t  本轮读取长度
+ */
 ssize_t HttpConn::read(int* readErrno) {
     ssize_t len = -1;
 
@@ -49,6 +55,7 @@ ssize_t HttpConn::read(int* readErrno) {
         else if (len <= writable)
             m_readBuff.hasWritten(len);
         else {
+            // 大于buffer长度，扩容存储
             m_readBuff.beenFilled();
             m_readBuff.append(m_expandedBuff, len - writable);
         }
@@ -61,6 +68,12 @@ ssize_t HttpConn::read(int* readErrno) {
     return len;
 }
 
+/**
+ * @brief 连接数据写出
+ * 
+ * @param readErrno 带出错误
+ * @return ssize_t  本轮写出长度
+ */
 ssize_t HttpConn::write(int* readErrno) {
     ssize_t len = -1;
 
@@ -71,9 +84,10 @@ ssize_t HttpConn::write(int* readErrno) {
             *readErrno = errno;
             break;
         } 
-        else if (m_iovWrite[0].iov_len + m_iovWrite[1].iov_len == 0)
+        else if (m_iovWrite[0].iov_len + m_iovWrite[1].iov_len == 0)    // 所有数据被传输关闭
             break;
         else if (static_cast<size_t>(len) > m_iovWrite[0].iov_len) {    // 保证都是无符号比较
+            // 本轮写出数据大于iovWrite的第一个向量
             m_iovWrite[1].iov_base = static_cast<char*>(m_iovWrite[1].iov_base) + (len - m_iovWrite[0].iov_len);
             m_iovWrite[1].iov_len -= len - m_iovWrite[0].iov_len;
 
@@ -89,7 +103,12 @@ ssize_t HttpConn::write(int* readErrno) {
     return len;
 }
 
-
+/**
+ * @brief 进一步处理(解析请求、组装响应、准备写出向量)
+ * 
+ * @return true  1
+ * @return false 0
+ */
 bool HttpConn::process() {
     m_request.init();
 
@@ -115,6 +134,12 @@ bool HttpConn::process() {
     return true;
 }
 
+/**
+ * @brief 连接关闭
+ * 
+ * @return true  1
+ * @return false 0
+ */
 bool HttpConn::doClose() {
     m_response.unmapFile();
 
@@ -154,6 +179,7 @@ int HttpConn::getPort() const {
     return m_addr.sin_port;
 }
 
+// 待传输数据长度
 const int HttpConn::bytesToSend() const {
     return m_iovWrite[0].iov_len + m_iovWrite[1].iov_len;
 }
