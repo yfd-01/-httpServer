@@ -2,6 +2,12 @@
 
 SqlConnPool SqlConnPool::s_sqlConnPool;
 
+/**
+ * @brief 数据库连接池初始化
+ * 
+ * @param conn_nums 预备的连接数量
+ * @param info 数据库相关信息
+ */
 void SqlConnPool::init(int conn_nums, SqlConnInfo* info) {
     assert(conn_nums > 0);
 
@@ -38,7 +44,11 @@ SqlConnPool* SqlConnPool::Instance() {
     return &s_sqlConnPool;
 }
 
-
+/**
+ * @brief 从连接池获取连接
+ * 
+ * @return MYSQL* object
+ */
 MYSQL* SqlConnPool::getConn() {
     MYSQL* conn = nullptr;
 
@@ -61,6 +71,11 @@ MYSQL* SqlConnPool::getConn() {
     return conn;
 }
 
+/**
+ * @brief 连接释放
+ * 
+ * @param conn object
+ */
 void SqlConnPool::freeConn(MYSQL* conn) {
     std::lock_guard<std::mutex> locker(m_mutex);
     m_conn_pool.push(conn);
@@ -71,6 +86,9 @@ void SqlConnPool::freeConn(MYSQL* conn) {
     sem_post(&m_sem);
 }
 
+/**
+ * @brief 销毁连接池
+ */
 void SqlConnPool::destoryPool() {
     std::lock_guard<std::mutex> locker(m_mutex);
 

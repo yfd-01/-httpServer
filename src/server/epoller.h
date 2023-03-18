@@ -1,3 +1,7 @@
+/*
+    epoll操作封装
+*/
+
 #ifndef _EPOLLER_H
 #define _EPOLLER_H
 

@@ -17,6 +17,12 @@ public:
     ~ThreadPool();
 
 public:
+    /**
+     * @brief 添加待处理的事务任务
+     * 
+     * @tparam T 
+     * @param task 
+     */
     template<typename T>
     void addTask(T&& task) {
         {

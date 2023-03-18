@@ -12,16 +12,17 @@
 #include <string>
 #include <vector>
 
-#define SQLCONNPOOL_TEST    0
-#define THREADPOOL_TEST     0
-#define HEAPTIMER_TEST      0
-#define BLOCKINGDEQUE_TEST  0
-#define LOGGER_TEST         0
+#define SQLCONNPOOL_TEST    0   // 数据库连接池测试
+#define THREADPOOL_TEST     0   // 线程池测试
+#define HEAPTIMER_TEST      0   // 最小时间堆测试
+#define BLOCKINGDEQUE_TEST  0   // 阻塞队列测试
+#define LOGGER_TEST         0   // 日志测试
 
 void func() {
     std::cout<< "hello: "<< std::endl;
 }
 
+// 计时器
 class Timer {
 public:
     Timer() {

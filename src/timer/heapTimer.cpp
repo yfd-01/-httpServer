@@ -1,5 +1,4 @@
 #include "heapTimer.h"
-#include <iostream>
 
 HeapTimer::HeapTimer() {
     m_heap.reserve(c_init_reserves);
@@ -10,14 +9,23 @@ HeapTimer::~HeapTimer() {
     m_map.clear();
 }
 
+// 获取父下标
 int HeapTimer::parentIndex(int i) {
     return (i - 1) / 2;
 }
 
+// 获取左孩子下标
 int HeapTimer::childIndexLeft(int i) {
     return i * 2 + 1;
 }
 
+/**
+ * @brief 挂载新的fd进行监听
+ * 
+ * @param tid fd
+ * @param timeout 超时时间间隔
+ * @param cb 回调
+ */
 void HeapTimer::add(int tid, int timeout, const TimeoutCallBack& cb) {
     assert(tid > 0);
     int i;
@@ -28,17 +36,25 @@ void HeapTimer::add(int tid, int timeout, const TimeoutCallBack& cb) {
         m_heap[i].expire = Clock::now() + MS(timeout);
         m_heap[i].cb = cb;
 
-        __siftUp(i);
+        // 更新了过期时间先下沉调整，若无变化再上浮调整
+        if (!__siftDown(i, m_heap.size() - 1)) __siftUp(i);
     }else {
         // no exists
         i = m_heap.size();
         m_map[tid] = i;
         m_heap.push_back({tid, Clock::now() + MS(timeout), cb });
 
-        if (!__siftDown(i, m_heap.size() - 1)) __siftUp(i);
+        // 堆尾插入了元素，进行上浮调整
+        __siftUp(i);
     }
 }
 
+/**
+ * @brief 调整节点的过期时间
+ * 
+ * @param tid fd
+ * @param timeout 新调整时间间隔
+ */
 void HeapTimer::adjust(int tid, int timeout) {
     assert(!m_heap.empty() && m_map.count(tid) > 0);
 
@@ -46,6 +62,11 @@ void HeapTimer::adjust(int tid, int timeout) {
     __siftDown(m_map[tid], m_heap.size());
 }
 
+/**
+ * @brief 删除节点，触发回调
+ * 
+ * @param tid fd
+ */
 void HeapTimer::drop(int tid) {
     assert(!m_heap.empty() && m_map.count(tid) != 0);
 
@@ -54,6 +75,9 @@ void HeapTimer::drop(int tid) {
     __del(i);
 }
 
+/**
+ * @brief 清除超时节点
+ */
 void HeapTimer::fresh() {
     while (!m_heap.empty()) {
         TimerNode timer = m_heap.front();
@@ -66,6 +90,11 @@ void HeapTimer::fresh() {
     }
 }
 
+/**
+ * @brief 获取最近节点的时间间隔
+ * 
+ * @return int shortest interval
+ */
 int HeapTimer::getNextTick() {
     fresh();
     int interval = -1;
@@ -79,6 +108,11 @@ int HeapTimer::getNextTick() {
     return interval;
 }
 
+/**
+ * @brief 堆删除操作
+ * 
+ * @param i index
+ */
 void HeapTimer::__del(int i) {
     assert(!m_heap.empty() && i >= 0 && i < m_heap.size());
 
@@ -89,7 +123,7 @@ void HeapTimer::__del(int i) {
         __swap(i, size_ - 1);
 
         // heapify
-        if (__siftDown(i, size_ - 1))
+        if (!__siftDown(i, size_ - 1))
             __siftUp(i);
     }
 
@@ -97,6 +131,11 @@ void HeapTimer::__del(int i) {
     m_heap.pop_back();
 }
 
+/**
+ * @brief 堆化-上浮
+ * 
+ * @param i index
+ */
 void HeapTimer::__siftUp(int i) {
     assert(i >= 0 && i < m_heap.size());
     int j = parentIndex(i);
@@ -111,6 +150,13 @@ void HeapTimer::__siftUp(int i) {
     }
 }
 
+/**
+ * @brief 堆化-下沉
+ * 
+ * @param i index
+ * @param n 边界
+ * @return bool res
+ */
 bool HeapTimer::__siftDown(int i, int n) {
     assert(i >= 0 && i < m_heap.size());
     assert(n >= 0 && n <= m_heap.size());
@@ -130,6 +176,12 @@ bool HeapTimer::__siftDown(int i, int n) {
     return i > init_index;
 }
 
+/**
+ * @brief 交换堆上两节点
+ * 
+ * @param i index1
+ * @param j index2
+ */
 void HeapTimer::__swap(int i, int j) {
     assert(i >= 0 && i < m_heap.size());
     assert(j >= 0 && j < m_heap.size());

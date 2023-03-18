@@ -14,7 +14,7 @@ ThreadPool::ThreadPool(int thread_nums): m_thread_nums(thread_nums) {
                     m_tasks_queue.pop();                    
 
                     mtx.unlock();
-                    task();
+                    task();     // 事务任务处理
                     mtx.lock();
                 }else if(m_closed) { break; }
                 else {
